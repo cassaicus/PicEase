@@ -15,7 +15,7 @@ struct ThumbnailScrollView: View {
                         ThumbnailImageView(url: imageUrl)
                             .frame(width: 80, height: 80)
                             .clipped()
-                            .border(currentIndex == index ? Color.white : Color.clear, width: 2)
+                            .border(currentIndex == index ? Color.blue : Color.clear, width: 2)
                             .onTapGesture {
                                 currentIndex = index
                                 NotificationCenter.default.post(name: .thumbnailSelected, object: index)

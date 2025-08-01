@@ -123,6 +123,9 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
     
+    func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
+        pageController.completeTransition()
+    }
     
     // キーボード操作（←→）でナビゲート可能に
     override func keyDown(with event: NSEvent) {
