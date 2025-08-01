@@ -8,11 +8,11 @@ struct PageControllerRepresentable: NSViewControllerRepresentable {
     class Coordinator {
         var pageController: ImagePageController?
 
-        func makeFirstResponder() {
-            DispatchQueue.main.async {
-                self.pageController?.view.window?.makeFirstResponder(self.pageController)
-            }
-        }
+//        func makeFirstResponder() {
+//            DispatchQueue.main.async {
+//                self.pageController?.view.window?.makeFirstResponder(self.pageController)
+//            }
+//        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -36,8 +36,8 @@ struct PageControllerRepresentable: NSViewControllerRepresentable {
         }
     }
 
-    // 外部から responder を復帰する用
-    func makeFirstResponder(_ coordinator: Coordinator) {
-        coordinator.makeFirstResponder()
-    }
+//    // 外部から responder を復帰する用
+//    func makeFirstResponder(_ coordinator: Coordinator) {
+//        coordinator.makeFirstResponder()
+//    }
 }

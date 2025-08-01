@@ -18,9 +18,9 @@ struct ContentView: View {
                             isThumbnailVisible = true
                         }
                         // サムネイルを表示するタイミングでResponder復帰
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            pageControllerCoordinator.makeFirstResponder()
-                        }
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                            pageControllerCoordinator.makeFirstResponder()
+//                        }
                     } else {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                             withAnimation {
