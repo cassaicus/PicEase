@@ -1,31 +1,43 @@
 import SwiftUI
 import AppKit
 
-// SwiftUI用にNSPageControllerをラップ
 struct PageControllerRepresentable: NSViewControllerRepresentable {
     @ObservedObject var controller: PageControllerWrapper
+    let coordinator: Coordinator
+
+    class Coordinator {
+        var pageController: ImagePageController?
+
+        func makeFirstResponder() {
+            DispatchQueue.main.async {
+                self.pageController?.view.window?.makeFirstResponder(self.pageController)
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeNSViewController(context: Context) -> NSPageController {
-        // カスタムImagePageControllerを生成
-        let pageController = ImagePageController(controller: controller)
-        return pageController
+        let pc = ImagePageController(controller: controller)
+        context.coordinator.pageController = pc
+        return pc
     }
 
     func updateNSViewController(_ nsViewController: NSPageController, context: Context) {
-        // 画像パスの更新確認
         let imagePaths = controller.imagePaths
-
         if imagePaths != nsViewController.arrangedObjects as? [URL] {
             nsViewController.arrangedObjects = imagePaths
         }
 
-        guard !imagePaths.isEmpty else { return }
-
-        // 選択インデックスの更新
         if imagePaths.indices.contains(controller.selectedIndex) {
             nsViewController.selectedIndex = controller.selectedIndex
-        } else {
-            nsViewController.selectedIndex = 0
         }
+    }
+
+    // 外部から responder を復帰する用
+    func makeFirstResponder(_ coordinator: Coordinator) {
+        coordinator.makeFirstResponder()
     }
 }

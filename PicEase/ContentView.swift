@@ -1,20 +1,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var controller = PageControllerWrapper() // コントローラーを状態管理
-    @State private var isThumbnailVisible = true // サムネイル表示状態
+    @StateObject private var controller = PageControllerWrapper()
+    @State private var isThumbnailVisible = true
+
+    // Coordinatorを保持してResponder再設定できるように
+    private let pageControllerCoordinator = PageControllerRepresentable.Coordinator()
 
     var body: some View {
         VStack(spacing: 0) {
-            // ページビュー表示部分
-            PageControllerRepresentable(controller: controller)
+            PageControllerRepresentable(controller: controller, coordinator: pageControllerCoordinator)
                 .edgesIgnoringSafeArea(.all)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onHover { hovering in
-                    // ホバー時にサムネイル表示／非表示を制御
                     if hovering {
                         withAnimation {
                             isThumbnailVisible = true
+                        }
+                        // サムネイルを表示するタイミングでResponder復帰
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            pageControllerCoordinator.makeFirstResponder()
                         }
                     } else {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
@@ -25,7 +30,6 @@ struct ContentView: View {
                     }
                 }
 
-            // サムネイルビュー
             if isThumbnailVisible {
                 ThumbnailScrollView(imageURLs: controller.imagePaths, currentIndex: $controller.selectedIndex)
                     .frame(height: 100)
