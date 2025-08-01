@@ -16,7 +16,7 @@ struct ThumbnailScrollView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
                             .clipped()
-                            .border(currentIndex == index ? Color.white : Color.clear, width: 2) // 選択中は白枠
+                            .border(currentIndex == index ? Color.blue : Color.clear, width: 2)
                             .onTapGesture {
                                 currentIndex = index
                                 NotificationCenter.default.post(name: .thumbnailSelected, object: index) // 通知で選択
