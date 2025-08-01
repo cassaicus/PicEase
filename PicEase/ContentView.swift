@@ -1,24 +1,10 @@
-//
-//  ContentView.swift
-//  PicEase
-//
-//  Created by ibis on 2025/08/01.
-//
-
 import SwiftUI
+import AppKit
 
-struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+struct ContentView: NSViewControllerRepresentable {
+    func makeNSViewController(context: Context) -> NSViewController {
+        return ImagePageController()
     }
-}
 
-#Preview {
-    ContentView()
+    func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
 }
