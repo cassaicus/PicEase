@@ -63,9 +63,13 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
            index >= 0,
            index < arrangedObjects.count {
             selectedIndex = index
+            
+            // 明示的に遷移を完了させる（再描画トリガー）
+            completeTransition()
+            
         }
     }
-
+    
     // 各ページの識別子
     func pageController(_ pageController: NSPageController, identifierFor object: Any) -> NSPageController.ObjectIdentifier {
         return "ImageViewController"
@@ -83,6 +87,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
 
+    
+    func pageController(_ pageController: NSPageController, didTransitionTo object: Any) {
+        if let url = object as? URL,
+           let index = wrapper.imagePaths.firstIndex(of: url) {
+            wrapper.selectedIndex = index
+        }
+    }
+    
+    
     // キーボード操作（←→）でナビゲート可能に
     override func keyDown(with event: NSEvent) {
         switch event.keyCode {
