@@ -9,26 +9,25 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            PageControllerRepresentable(controller: controller, coordinator: pageControllerCoordinator)
-                .edgesIgnoringSafeArea(.all)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onHover { hovering in
-                    if hovering {
+            ZStack {
+                PageControllerRepresentable(controller: controller, coordinator: pageControllerCoordinator)
+                    .edgesIgnoringSafeArea(.all)
+
+                MouseTrackingView { location in
+                    let threshold: CGFloat = 150
+                    if location.y <= threshold {
                         withAnimation {
                             isThumbnailVisible = true
                         }
-                        // サムネイルを表示するタイミングでResponder復帰
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                            pageControllerCoordinator.makeFirstResponder()
-//                        }
                     } else {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             withAnimation {
                                 isThumbnailVisible = false
                             }
                         }
                     }
                 }
+            }
 
             if isThumbnailVisible {
                 ThumbnailScrollView(imageURLs: controller.imagePaths, currentIndex: $controller.selectedIndex)
@@ -37,5 +36,70 @@ struct ContentView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+
+//        VStack(spacing: 0) {
+//            PageControllerRepresentable(controller: controller, coordinator: pageControllerCoordinator)
+//                .edgesIgnoringSafeArea(.all)
+//                .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                .onHover { hovering in
+//                    if hovering {
+//                        withAnimation {
+//                            isThumbnailVisible = true
+//                        }
+//                        // サムネイルを表示するタイミングでResponder復帰
+////                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+////                            pageControllerCoordinator.makeFirstResponder()
+////                        }
+//                    } else {
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+//                            withAnimation {
+//                                isThumbnailVisible = false
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            if isThumbnailVisible {
+//                ThumbnailScrollView(imageURLs: controller.imagePaths, currentIndex: $controller.selectedIndex)
+//                    .frame(height: 100)
+//                    .background(Color.black.opacity(0.8))
+//                    .transition(.move(edge: .bottom).combined(with: .opacity))
+//            }
+//        }
     }
+}
+
+
+struct MouseTrackingView: NSViewRepresentable {
+    var onMove: (CGPoint) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let trackingView = TrackingNSView()
+        trackingView.onMove = onMove
+        return trackingView
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    class TrackingNSView: NSView {
+        var onMove: ((CGPoint) -> Void)?
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            trackingAreas.forEach(removeTrackingArea)
+            let area = NSTrackingArea(rect: bounds,
+                                      options: [.mouseMoved, .activeInKeyWindow, .inVisibleRect],
+                                      owner: self, userInfo: nil)
+            addTrackingArea(area)
+        }
+
+        override func mouseMoved(with event: NSEvent) {
+            onMove?(convert(event.locationInWindow, from: nil))
+        }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            return nil // ← これが重要！
+        }
+    }
+
 }
