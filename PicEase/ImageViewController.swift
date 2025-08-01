@@ -1,4 +1,4 @@
-import SwiftUI
+import AppKit
 
 class ImageViewController: NSViewController {
     private var imageView = NSImageView()

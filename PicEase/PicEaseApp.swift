@@ -3,9 +3,9 @@ import SwiftUI
 @main
 struct PicEaseApp: App {
     var body: some Scene {
-        Window("PicEase", id: "mainWindow") {
+        Window("Image Viewer", id: "main") {
             ContentView()
-                .edgesIgnoringSafeArea(.all) // フル領域使用
+                .edgesIgnoringSafeArea(.all)
         }
         .windowStyle(HiddenTitleBarWindowStyle())
         .commands {
@@ -21,4 +21,5 @@ struct PicEaseApp: App {
 
 extension Notification.Name {
     static let openFolder = Notification.Name("openFolder")
+    static let thumbnailSelected = Notification.Name("thumbnailSelected")
 }
