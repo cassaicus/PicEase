@@ -1,0 +1,50 @@
+import SwiftUI
+import AppKit
+import Combine
+
+
+class ThumbnailLoader: ObservableObject {
+    @Published var image: NSImage? = nil
+    private var cancellable: AnyCancellable?
+
+    func load(from url: URL, maxSize: CGFloat = 100) {
+        if let cached = ImageCache.shared.image(for: url) {
+            self.image = cached
+            return
+        }
+
+        cancellable = Just(url)
+            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+            .map { url in
+                guard let img = NSImage(contentsOf: url) else { return nil }
+                let thumb = img.resized(toMax: maxSize)
+                ImageCache.shared.setImage(thumb, for: url)
+                return thumb
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] img in
+                self?.image = img
+            }
+    }
+}
+
+struct ThumbnailImageView: View {
+    let url: URL
+    @StateObject private var loader = ThumbnailLoader()
+
+    var body: some View {
+        Group {
+            if let image = loader.image {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Color.gray.opacity(0.3) // 読み込み中はプレースホルダー
+            }
+        }
+        .onAppear {
+            loader.load(from: url)
+        }
+    }
+}
+
