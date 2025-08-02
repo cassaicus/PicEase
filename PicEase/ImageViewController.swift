@@ -61,11 +61,7 @@ class ImageViewController: NSViewController {
         // URL から NSImage を読み込んで imageView にセット
         imageView.image = NSImage(contentsOf: url)
         // 新しい画像に合わせてズーム状態をリセット
-        //resetZoom()
-        // 🔧 拡大中心とパン状態をリセット
-        imageView.layer?.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        imageView.layer?.position = CGPoint(x: imageView.bounds.midX, y: imageView.bounds.midY)
-        imageView.layer?.setAffineTransform(.identity)
+        resetZoom()
     }
     
     // パン（ドラッグによる移動）処理
@@ -81,44 +77,6 @@ class ImageViewController: NSViewController {
         // レイヤーの位置を更新
         layer.position = newPos
     }
-    
-    
-    override func viewDidLayout() {
-        super.viewDidLayout()
-
-        // ビューがリサイズされたときにズーム位置をリセット
-        centerImageIfNeeded()
-    }
-    
-    
-    
-    private func centerImageIfNeeded() {
-        guard let layer = imageView.layer else { return }
-
-        // 現在の拡大状態を取得
-        let currentTransform = layer.affineTransform()
-
-        // スケールだけ維持、位置は中央へ戻す
-        let currentScaleX = currentTransform.a
-        let currentScaleY = currentTransform.d
-
-        let newTransform = CGAffineTransform(scaleX: currentScaleX, y: currentScaleY)
-        layer.setAffineTransform(newTransform)
-
-        // 拡大中心をビュー中央へ
-        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        layer.position = CGPoint(x: imageView.bounds.midX, y: imageView.bounds.midY)
-    }
-    
-    // 画像読み込み時にズーム状態を初期化する
-//    private func resetZoom() {
-//        // ズーム倍率を 1.0 に戻す
-//        zoomScale = 1.0
-//        // imageScaling をデフォルトに戻す
-//        imageView.imageScaling = .scaleProportionallyUpOrDown
-//        // 画像ビューのフレームサイズをルートビューに合わせる
-//        imageView.setFrameSize(view.bounds.size)
-//    }
 
     // ダブルクリック検出時の処理
     @objc private func handleDoubleClick(_ sender: NSClickGestureRecognizer) {
@@ -174,6 +132,16 @@ class ImageViewController: NSViewController {
         let scale = zoomScale
         // AffineTransform でスケールを設定
         iv.layer?.setAffineTransform(CGAffineTransform(scaleX: scale, y: scale))
+    }
+
+    // 画像読み込み時にズーム状態を初期化する
+    private func resetZoom() {
+        // ズーム倍率を 1.0 に戻す
+        zoomScale = 1.0
+        // imageScaling をデフォルトに戻す
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        // 画像ビューのフレームサイズをルートビューに合わせる
+        imageView.setFrameSize(view.bounds.size)
     }
     
     // ホイールやピンチによるズーム処理
