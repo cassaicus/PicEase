@@ -15,9 +15,11 @@ struct PicEaseApp: App {
             CommandMenu("ブックマーク") {
                 // フォルダーを開くメニュー項目
                 Button("フォルダーを開く") {
-                    NotificationCenter.default.post(name: .openFolder, object: nil) // 通知送信
+                    // 通知送信
+                    NotificationCenter.default.post(name: .openFolder, object: nil)
                 }
-                .keyboardShortcut("O", modifiers: [.command]) // ショートカット: ⌘O
+                // ショートカット: ⌘O
+                .keyboardShortcut("O", modifiers: [.command])
             }
         }
     }
