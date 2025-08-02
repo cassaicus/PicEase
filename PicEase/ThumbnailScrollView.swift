@@ -1,45 +1,40 @@
 import SwiftUI
 
 struct ThumbnailScrollView: View {
-    let imageURLs: [URL] // 画像のURL一覧
-    @Binding var currentIndex: Int // 現在選択中のインデックス
+    let imageURLs: [URL]
+    @Binding var currentIndex: Int
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: true) {
-            HStack {
-                ForEach(Array(imageURLs.enumerated()), id: \.offset) { pair in
-                    let index = pair.offset
-                    let imageUrl = pair.element
-                    
-                    let image = ImageCache.shared.image(for: imageUrl) ?? {
-                          let img = NSImage(contentsOf: imageUrl) ?? NSImage()
-                          ImageCache.shared.setImage(img, for: imageUrl)
-                          return img
-                      }()
-                    
-                    
-                    
-                   //if let image = NSImage(contentsOf: imageUrl) {
-                        Image(nsImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: true) {
+                HStack {
+                    ForEach(Array(imageURLs.enumerated()), id: \.offset) { pair in
+                        let index = pair.offset
+                        let imageUrl = pair.element
+
+                        ThumbnailImageView(url: imageUrl)
                             .frame(width: 80, height: 80)
                             .clipped()
-                            .border(currentIndex == index ? Color.blue : Color.clear, width: 2) // 選択中は白枠
+                            .border(currentIndex == index ? Color.blue : Color.clear, width: 2)
                             .onTapGesture {
                                 currentIndex = index
-                                NotificationCenter.default.post(name: .thumbnailSelected, object: index) // 通知で選択
+                                NotificationCenter.default.post(name: .thumbnailSelected, object: index)
                             }
-                   // }
-                    
-                    
-                    
-                    
-                    
-                    
+                            .id(index)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .onChange(of: currentIndex) { newIndex in
+                withAnimation {
+                    proxy.scrollTo(newIndex, anchor: .center)
                 }
             }
-            .padding(.horizontal)
+            .onAppear {
+                DispatchQueue.main.async {
+                    proxy.scrollTo(currentIndex, anchor: .center)
+                }
+            }
         }
     }
 }

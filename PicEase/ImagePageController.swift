@@ -34,7 +34,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         view.window?.makeFirstResponder(self)
     }
 
-    // フォルダー選択パネルを表示
+    
     @objc func openFolder() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
@@ -42,20 +42,48 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         panel.allowsMultipleSelection = false
 
         if panel.runModal() == .OK, let url = panel.url {
-            let fm = FileManager.default
-            let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
-            let images = items?.filter {
-                ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-                    .contains($0.pathExtension.lowercased())
-            }.sorted {
-                $0.lastPathComponent
-                    .localizedStandardCompare($1.lastPathComponent)
-                == .orderedAscending
-            } ?? []
-            
-            wrapper.setImages(images) // ラッパーに画像を渡す
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fm = FileManager.default
+                let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+
+                let images = items?.filter {
+                    ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
+                        .contains($0.pathExtension.lowercased())
+                }.sorted {
+                    $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+                } ?? []
+
+                DispatchQueue.main.async {
+                    self.wrapper.setImages(images)
+                }
+            }
         }
     }
+
+    
+    
+    // フォルダー選択パネルを表示
+//    @objc func openFolder() {
+//        let panel = NSOpenPanel()
+//        panel.canChooseDirectories = true
+//        panel.canChooseFiles = false
+//        panel.allowsMultipleSelection = false
+//
+//        if panel.runModal() == .OK, let url = panel.url {
+//            let fm = FileManager.default
+//            let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+//            let images = items?.filter {
+//                ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
+//                    .contains($0.pathExtension.lowercased())
+//            }.sorted {
+//                $0.lastPathComponent
+//                    .localizedStandardCompare($1.lastPathComponent)
+//                == .orderedAscending
+//            } ?? []
+//            
+//            wrapper.setImages(images) // ラッパーに画像を渡す
+//        }
+//    }
 
     // サムネイルが選択されたときの処理
     @objc func thumbnailSelected(_ notification: Notification) {
