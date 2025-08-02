@@ -110,6 +110,10 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             vc.setImage(url: url)
         }
     }
+    
+    func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
+        pageController.completeTransition()
+    }
 
     // キーボード操作（←→）でナビゲート可能に
     override func keyDown(with event: NSEvent) {
