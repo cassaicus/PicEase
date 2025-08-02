@@ -61,22 +61,45 @@ struct ThumbnailScrollView: View {
 }
 
 // 画像キャッシュを管理するシングルトンクラス
-class ImageCache {
-    // 共有インスタンス
+//class ImageCache {
+//    // 共有インスタンス
+//    static let shared = ImageCache()
+//    // URL をキーに NSImage を保持する内部辞書
+//    private var cache: [URL: NSImage] = [:]
+//    // 外部からのインスタンス化を防ぐ
+//    private init() {}
+//    // キャッシュから画像を取得
+//    func image(for url: URL) -> NSImage? {
+//        return cache[url]
+//    }
+//    // キャッシュに画像を保存
+//    func setImage(_ image: NSImage, for url: URL) {
+//        cache[url] = image
+//    }
+//}
+final class ImageCache {
     static let shared = ImageCache()
-    // URL をキーに NSImage を保持する内部辞書
+
+    private let queue = DispatchQueue(label: "jp.gptjp.imagecache", attributes: .concurrent)
     private var cache: [URL: NSImage] = [:]
-    // 外部からのインスタンス化を防ぐ
+
     private init() {}
-    // キャッシュから画像を取得
+
     func image(for url: URL) -> NSImage? {
-        return cache[url]
+        var result: NSImage?
+        queue.sync {
+            result = cache[url]
+        }
+        return result
     }
-    // キャッシュに画像を保存
+
     func setImage(_ image: NSImage, for url: URL) {
-        cache[url] = image
+        queue.async(flags: .barrier) {
+            self.cache[url] = image
+        }
     }
 }
+
 
 // ImageCache にサムネイル生成機能を拡張
 extension ImageCache {
