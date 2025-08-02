@@ -5,7 +5,7 @@ struct PicEaseApp: App {
     // アプリのエントリーポイント
     var body: some Scene {
         // メインウィンドウを作成
-        Window("Image Viewer", id: "main") {
+        Window("PicEase", id: "main") {
             ContentView() // メインUI
                 .edgesIgnoringSafeArea(.all) // 画面端まで表示
         }
