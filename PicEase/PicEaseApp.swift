@@ -6,10 +6,13 @@ struct PicEaseApp: App {
     var body: some Scene {
         // メインウィンドウを作成
         Window("Image Viewer", id: "main") {
-            ContentView() // メインUI
-                .edgesIgnoringSafeArea(.all) // 画面端まで表示
+            // メインUI
+            ContentView()
+            // 画面端まで表示
+                .edgesIgnoringSafeArea(.all)
         }
-        .windowStyle(HiddenTitleBarWindowStyle()) // タイトルバーを隠すスタイル
+        // タイトルバーを隠すスタイル
+        .windowStyle(HiddenTitleBarWindowStyle())
         .commands {
             // カスタムメニュー追加（ブックマーク）
             CommandMenu("ブックマーク") {
