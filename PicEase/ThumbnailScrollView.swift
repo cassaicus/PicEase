@@ -10,18 +10,33 @@ struct ThumbnailScrollView: View {
                 ForEach(Array(imageURLs.enumerated()), id: \.offset) { pair in
                     let index = pair.offset
                     let imageUrl = pair.element
-                    if let image = NSImage(contentsOf: imageUrl) {
+                    
+                    let image = ImageCache.shared.image(for: imageUrl) ?? {
+                          let img = NSImage(contentsOf: imageUrl) ?? NSImage()
+                          ImageCache.shared.setImage(img, for: imageUrl)
+                          return img
+                      }()
+                    
+                    
+                    
+                   //if let image = NSImage(contentsOf: imageUrl) {
                         Image(nsImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
                             .clipped()
-                            .border(currentIndex == index ? Color.white : Color.clear, width: 2) // 選択中は白枠
+                            .border(currentIndex == index ? Color.blue : Color.clear, width: 2) // 選択中は白枠
                             .onTapGesture {
                                 currentIndex = index
                                 NotificationCenter.default.post(name: .thumbnailSelected, object: index) // 通知で選択
                             }
-                    }
+                   // }
+                    
+                    
+                    
+                    
+                    
+                    
                 }
             }
             .padding(.horizontal)
