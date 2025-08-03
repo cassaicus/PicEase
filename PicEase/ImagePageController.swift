@@ -111,6 +111,18 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
     
+    func pageController(_ pageController: NSPageController, didTransitionTo object: Any) {
+        if let url = object as? URL,
+           let index = wrapper.imagePaths.firstIndex(of: url) {
+            // Viewの更新が終わったあとに状態変更を遅延させる
+            DispatchQueue.main.async {
+                self.wrapper.selectedIndex = index
+            }
+        }
+    }
+    
+    
+    
     func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
         pageController.completeTransition()
     }

@@ -12,7 +12,9 @@ class ThumbnailLoader: ObservableObject {
         }
 
         cancellable = Just(url)
-            .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+        // 遅延
+            .delay(for: .milliseconds(50), scheduler: DispatchQueue.global(qos: .background))
+        // 遅延
             .map { url in
                 guard let img = NSImage(contentsOf: url) else { return nil }
                 let thumb = img.resized(toMax: maxSize)
