@@ -3,6 +3,13 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var controller = PageControllerWrapper() // コントローラーを状態管理
     @State private var isThumbnailVisible = true // サムネイル表示状態
+    
+    
+    
+    // 追加：一定時間だけ動作をロックするフラグ
+    @State private var canToggleThumbnail = true
+    
+    
 
     var body: some View {
         VStack(spacing: 0) {
@@ -11,6 +18,17 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
 
                 MouseTrackingView { location in
+                    
+                    // フラグが false の間は無視
+                    guard canToggleThumbnail else { return }
+                    canToggleThumbnail = false
+
+                    // 一定時間（例: 0.3秒）後に再度許可
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                      canToggleThumbnail = true
+                    }
+                    
+                    
                     let threshold: CGFloat = 150
                     if location.y <= threshold {
                         withAnimation {
@@ -27,7 +45,11 @@ struct ContentView: View {
             }
 
             if isThumbnailVisible {
-                ThumbnailScrollView(imageURLs: controller.imagePaths, currentIndex: $controller.selectedIndex)
+                ThumbnailScrollView(
+                    imageURLs: controller.imagePaths,
+                    currentIndex: $controller.selectedIndex,
+                    isThumbnailVisible: $isThumbnailVisible
+                )
                     .frame(height: 100)
                     .background(Color.black.opacity(0.8))
                     .transition(.move(edge: .bottom).combined(with: .opacity))
