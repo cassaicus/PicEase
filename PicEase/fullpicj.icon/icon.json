@@ -1,0 +1,45 @@
+{
+  "fill" : {
+    "automatic-gradient" : "display-p3:0.96611,0.15043,0.31762,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "glass" : false,
+          "hidden-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "idiom" : "square",
+              "value" : false
+            }
+          ],
+          "image-name" : "Copilot_20250802_133354.png",
+          "name" : "Copilot_20250802_133354",
+          "position" : {
+            "scale" : 1.1,
+            "translation-in-points" : [
+              4.59375,
+              2.1142968332481757
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}
