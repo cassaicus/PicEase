@@ -2,6 +2,9 @@ import SwiftUI
 
 @main
 struct PicEaseApp: App {
+    
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     // アプリのエントリーポイント
     var body: some Scene {
         // メインウィンドウを作成
@@ -28,4 +31,6 @@ extension Notification.Name {
     static let openFolder = Notification.Name("openFolder")
     // サムネイル選択の通知名
     static let thumbnailSelected = Notification.Name("thumbnailSelected")
+    //AppDelegate
+    static let openFromExternal = Notification.Name("openFromExternal")
 }
