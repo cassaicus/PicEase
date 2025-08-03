@@ -4,13 +4,9 @@ struct ContentView: View {
     @StateObject private var controller = PageControllerWrapper() // コントローラーを状態管理
     @State private var isThumbnailVisible = true // サムネイル表示状態
     
-    
-    
     // 追加：一定時間だけ動作をロックするフラグ
     @State private var canToggleThumbnail = true
     
-    
-
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
@@ -83,6 +79,10 @@ struct MouseTrackingView: NSViewRepresentable {
 
         override func mouseMoved(with event: NSEvent) {
             onMove?(convert(event.locationInWindow, from: nil))
+        }
+        
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            return nil
         }
     }
 }

@@ -59,32 +59,6 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             }
         }
     }
-
-    
-    
-    // フォルダー選択パネルを表示
-//    @objc func openFolder() {
-//        let panel = NSOpenPanel()
-//        panel.canChooseDirectories = true
-//        panel.canChooseFiles = false
-//        panel.allowsMultipleSelection = false
-//
-//        if panel.runModal() == .OK, let url = panel.url {
-//            let fm = FileManager.default
-//            let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
-//            let images = items?.filter {
-//                ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                    .contains($0.pathExtension.lowercased())
-//            }.sorted {
-//                $0.lastPathComponent
-//                    .localizedStandardCompare($1.lastPathComponent)
-//                == .orderedAscending
-//            } ?? []
-//            
-//            wrapper.setImages(images) // ラッパーに画像を渡す
-//        }
-//    }
-
     // サムネイルが選択されたときの処理
     @objc func thumbnailSelected(_ notification: Notification) {
         if let index = notification.object as? Int,

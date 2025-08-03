@@ -3,7 +3,7 @@ import SwiftUI
 final class ImageCache {
     static let shared = ImageCache()
 
-    private let queue = DispatchQueue(label: "jp.gptjp.imagecache", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "jp.cas.imagecache", attributes: .concurrent)
     private var cache: [URL: NSImage] = [:]
 
     private init() {}
