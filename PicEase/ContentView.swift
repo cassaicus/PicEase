@@ -2,52 +2,52 @@
 import SwiftUI
 
 
-struct ClickForwardingView: NSViewRepresentable {
-    var onClick: () -> Void
+//struct ClickForwardingView: NSViewRepresentable {
+//    var onClick: () -> Void
+//
+//    func makeNSView(context: Context) -> NSView {
+//        ForwardingView(action: onClick)
+//    }
+//
+//    func updateNSView(_ nsView: NSView, context: Context) {}
+//}
 
-    func makeNSView(context: Context) -> NSView {
-        ForwardingView(action: onClick)
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {}
-}
-
-class ForwardingView: NSView {
-    var action: (() -> Void)?
-
-    init(action: @escaping () -> Void) {
-        self.action = action
-        super.init(frame: .zero)
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.clear.cgColor
-    }
-    required init?(coder: NSCoder) {
-        fatalError()
-    }
-
-    override func hitTest(_ point: NSPoint) -> NSView? {
-        // クリック領域だけ拾って、それ以外は下層に透過
-        return action != nil ? self : nil
-    }
-
-    override func mouseDown(with event: NSEvent) {
-        action?()
-    }
-
-    override func mouseUp(with event: NSEvent) {
-        // 何もしないことでダブルクリックは下層へ伝播
-        super.mouseUp(with: event)
-    }
-
-    override func mouseDragged(with event: NSEvent) {
-        // ドラッグ（パン操作）は下層に伝える
-        super.mouseDragged(with: event)
-    }
-
-    override func scrollWheel(with event: NSEvent) {
-        super.scrollWheel(with: event)
-    }
-}
+//class ForwardingView: NSView {
+//    var action: (() -> Void)?
+//
+//    init(action: @escaping () -> Void) {
+//        self.action = action
+//        super.init(frame: .zero)
+//        wantsLayer = true
+//        layer?.backgroundColor = NSColor.clear.cgColor
+//    }
+//    required init?(coder: NSCoder) {
+//        fatalError()
+//    }
+//
+//    override func hitTest(_ point: NSPoint) -> NSView? {
+//        // クリック領域だけ拾って、それ以外は下層に透過
+//        return action != nil ? self : nil
+//    }
+//
+//    override func mouseDown(with event: NSEvent) {
+//        action?()
+//    }
+//
+//    override func mouseUp(with event: NSEvent) {
+//        // 何もしないことでダブルクリックは下層へ伝播
+//        super.mouseUp(with: event)
+//    }
+//
+//    override func mouseDragged(with event: NSEvent) {
+//        // ドラッグ（パン操作）は下層に伝える
+//        super.mouseDragged(with: event)
+//    }
+//
+//    override func scrollWheel(with event: NSEvent) {
+//        super.scrollWheel(with: event)
+//    }
+//}
 
 // 🔹 ボタンサイズの種類（共通定義として最上部に）
 enum ButtonSize {
@@ -75,31 +75,6 @@ struct ContentView: View {
                             isThumbnailVisible = false
                         }
                     }
-//                if controller.imagePaths.isEmpty == false {
-//                     Color.clear
-//                         .contentShape(Rectangle()) // 透明でもクリック領域とする
-//                         .onTapGesture {
-//                             withAnimation {
-//                                 isThumbnailVisible = false
-//                             }
-//                         }
-//                 }
-                
-//                ClickForwardingView {
-//                    // サムネイル非表示のトグル処理など
-//                    isThumbnailVisible = false
-//                }
-//                
-//              // 🔸 メイン画像をクリックしたらサムネイルを隠す
-//
-//                ClickForwardingView {
-//                    withAnimation {
-//                        isThumbnailVisible = false
-//                    }
-//                }
-                
-               // ClickForwardingView { isThumbnailVisible = false }
-                
                 // 🔸 マウスの移動を監視するカスタムビュー
                 MouseTrackingView { location in
                     guard canToggleThumbnail else { return } // 切り替え制御
@@ -246,38 +221,163 @@ struct ContentView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+    
 
-
+    
+    
+    
     func fitImageToWindow() {
-        let idx = controller.selectedIndex
-        guard controller.imagePaths.indices.contains(idx),
-              let image = NSImage(contentsOf: controller.imagePaths[idx]),
-              let window = NSApp.mainWindow,
-              let screen = window.screen else {
-            return
-        }
+      guard
+        controller.imagePaths.indices.contains(controller.selectedIndex),
+        let image  = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex]),
+        let window = NSApp.mainWindow,
+        let screen = window.screen
+      else { return }
 
-        let imgSize = image.size
-        let screenRect = screen.visibleFrame
-        
-        print(screenRect)
-        let padding: CGFloat = 40
+      let screenFrame  = screen.frame
+      let visibleFrame = screen.visibleFrame
+      let menuBarH     = NSStatusBar.system.thickness
 
-        let maxW = screenRect.width - padding * 2
-        let maxH = screenRect.height - padding * 2
-        let scale = min(maxW / imgSize.width, maxH / imgSize.height)
+      let bottomMargin = visibleFrame.minY - screenFrame.minY
+      let leftMargin   = visibleFrame.minX - screenFrame.minX
+      let rightMargin  = screenFrame.maxX - visibleFrame.maxX
+      let topMargin    = menuBarH
 
-        let newW = imgSize.width * scale
-        let newH = imgSize.height * scale
-        let newX = screenRect.origin.x + (screenRect.width - newW) / 2
-        let newY = screenRect.origin.y + (screenRect.height - newH) / 2
-        let newRect = NSRect(x: newX, y: newY, width: newW, height: newH)
+      let padding: CGFloat = 40
+      let availRect = CGRect(
+        x: screenFrame.minX + leftMargin  + padding,
+        y: screenFrame.minY + bottomMargin + padding,
+        width:  screenFrame.width  - leftMargin - rightMargin - 2*padding,
+        height: screenFrame.height - bottomMargin - topMargin  - 2*padding
+      )
 
-        // 比率固定
-        window.contentAspectRatio = imgSize
-        // ウィンドウをアニメーション付きで再設定
-        window.setFrame(newRect, display: true, animate: true)
+      let imgSize = image.size
+      let scale   = min(availRect.width  / imgSize.width,
+                        availRect.height / imgSize.height)
+      let contentSize = NSSize(width:  imgSize.width  * scale,
+                               height: imgSize.height * scale)
+
+      let frameRect = NSWindow.frameRect(
+        forContentRect: NSRect(origin: .zero, size: contentSize),
+        styleMask: window.styleMask
+      )
+
+      let originX = availRect.minX
+      let originY = screenFrame.maxY - topMargin - frameRect.height
+
+      let finalFrame = NSRect(
+        x: originX, y: originY,
+        width: frameRect.width, height: frameRect.height
+      )
+
+      window.contentAspectRatio = imgSize
+      window.setFrame(finalFrame, display: true, animate: true)
     }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    func fitImageToWindow() {
+//        let idx = controller.selectedIndex
+//        guard
+//            controller.imagePaths.indices.contains(idx),
+//            let image  = NSImage(contentsOf: controller.imagePaths[idx]),
+//            let window = NSApp.mainWindow,
+//            let screen = window.screen
+//        else { return }
+//
+//        // Dock を除いた可用領域を取得
+//        let screenFrame   = screen.frame
+//        let visibleFrame  = screen.visibleFrame
+//        let menuBarHeight = NSStatusBar.system.thickness
+//        let dockHeight    = screenFrame.height - visibleFrame.height - menuBarHeight
+//
+//        var availFrame = screenFrame
+//        availFrame.size.height -= dockHeight
+//        availFrame.origin.y    = screenFrame.origin.y
+//
+//        // 余白
+//        let padding: CGFloat = 40
+//        let insetFrame       = availFrame.insetBy(dx: padding, dy: padding)
+//
+//        // 画像比率で最大のコンテンツサイズ
+//        let imgSize = image.size
+//        let scale   = min(insetFrame.width  / imgSize.width,
+//                          insetFrame.height / imgSize.height)
+//        let contentSize = NSSize(width:  imgSize.width  * scale,
+//                                 height: imgSize.height * scale)
+//
+//        // クラスメソッドでフレームサイズを計算
+//        let style     = window.styleMask
+//        let frameRect = NSWindow.frameRect(
+//            forContentRect: NSRect(origin: .zero, size: contentSize),
+//            styleMask: style
+//        )
+//        // 高さを元に逆算して、左上起点に
+//        let originX = insetFrame.origin.x
+//        let originY = insetFrame.maxY - frameRect.height
+//
+//        let finalOrigin = CGPoint(x: originX, y: originY)
+//        let finalFrame  = NSRect(origin: finalOrigin,
+//                                 size:   frameRect.size)
+//
+//
+//        window.contentAspectRatio = imgSize
+//        window.setFrame(finalFrame, display: true, animate: true)
+//    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+//    func fitImageToWindow() {
+//        let idx = controller.selectedIndex
+//        guard controller.imagePaths.indices.contains(idx),
+//              let image = NSImage(contentsOf: controller.imagePaths[idx]),
+//              let window = NSApp.mainWindow,
+//              let screen = window.screen else {
+//            return
+//        }
+//
+//        let imgSize = image.size
+//        //let screenRect = screen.visibleFrame
+//        
+//        let screenRect = screen.frame
+//        print(screenRect)
+//
+//        let padding: CGFloat = 40
+//
+//        let maxW = screenRect.width - padding * 2
+//        let maxH = screenRect.height - padding * 2
+//        let scale = min(maxW / imgSize.width, maxH / imgSize.height)
+//
+//        let newW = imgSize.width * scale
+//        let newH = imgSize.height * scale
+//        let newX = screenRect.origin.x + (screenRect.width - newW) / 2
+//        let newY = screenRect.origin.y + (screenRect.height - newH) / 2
+//        let newRect = NSRect(x: newX, y: newY, width: newW, height: newH)
+//
+//        // 比率固定
+//        window.contentAspectRatio = imgSize
+//        // ウィンドウをアニメーション付きで再設定
+//        window.setFrame(newRect, display: true, animate: true)
+//    }
 
     
     
