@@ -24,7 +24,21 @@ class PageControllerWrapper: ObservableObject {
 
     // 新しい画像リストを設定
     func setImages(_ urls: [URL]) {
+        //imagePathsにURLを代入して画像を表示させる
         imagePaths = urls
-        selectedIndex = 0 // 最初の画像を選択状態に
+        // 最初の画像を選択状態に
+        selectedIndex = 0
+    }
+
+    // 新しい画像リストとインデックス数を設定
+    func setImagesIndex(_ urls: [URL], _ currentIndex: Int) {
+        guard !urls.isEmpty else { return }
+        imagePaths = urls
+        // インデックスが範囲外にならないように調整
+        if urls.indices.contains(currentIndex) {
+            selectedIndex = currentIndex
+        } else {
+            selectedIndex = 0
+        }
     }
 }

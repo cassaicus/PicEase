@@ -1,36 +1,53 @@
+
 import SwiftUI
 
 @main
 struct PicEaseApp: App {
-    
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    // アプリのエントリーポイント
+    // ImageViewerModel をアプリ全体で共有
+    @StateObject private var model = PageControllerWrapper()
+    // BookmarkStore も同様に共有
+    @StateObject private var bookmarkStore: BookmarkStore
+    //@StateObject private var imagePageControllerWrapper: ImagePageControllerWrapper
+    
+    
+    // 初期化時に BookmarkStore に model を渡す
+    init() {
+        let model = PageControllerWrapper()
+        _model = StateObject(wrappedValue: model)
+        _bookmarkStore = StateObject(wrappedValue: BookmarkStore(model: model))
+       // _imagePageControllerWrapper = StateObject(wrappedValue: ImagePageControllerWrapper(model: model))
+
+    }
+
     var body: some Scene {
-        // メインウィンドウを作成
         Window("PicEase", id: "main") {
-            ContentView() // メインUI
-                .edgesIgnoringSafeArea(.all) // 画面端まで表示
+            ContentView()
+                .environmentObject(model)
+                .environmentObject(bookmarkStore)
+                //.environmentObject(imagePageControllerWrapper)
+
         }
-        .windowStyle(HiddenTitleBarWindowStyle()) // タイトルバーを隠すスタイル
+        .windowStyle(HiddenTitleBarWindowStyle())
+
+        // ブックマーク機能を追加
         .commands {
-            // カスタムメニュー追加（ブックマーク）
-            CommandMenu("ブックマーク") {
-                // フォルダーを開くメニュー項目
-                Button("フォルダーを開く") {
-                    NotificationCenter.default.post(name: .openFolder, object: nil) // 通知送信
-                }
-                .keyboardShortcut("O", modifiers: [.command]) // ショートカット: ⌘O
-            }
+            BookmarkCommands(
+                store: bookmarkStore,
+                model: model
+                //,imagePageController: imagePageControllerWrapper
+            )
         }
     }
 }
 
 extension Notification.Name {
-    // フォルダーオープンの通知名
-    static let openFolder = Notification.Name("openFolder")
     // サムネイル選択の通知名
     static let thumbnailSelected = Notification.Name("thumbnailSelected")
-    //AppDelegate
+    //AppDelegateからファイルを開く
     static let openFromExternal = Notification.Name("openFromExternal")
+    // Bookmarkフォルダーオープンの通知名
+    static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
+
 }
