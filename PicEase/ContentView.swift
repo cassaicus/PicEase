@@ -21,14 +21,21 @@ struct ContentView: View {
                 PageControllerRepresentable(controller: controller)
                     .edgesIgnoringSafeArea(.all) // Safe Area を無視して全画面表示
                 
-                // 🔸 メイン画像をクリックしたらサムネイルを隠す
-                Color.clear
-                     .contentShape(Rectangle())
-                     .onTapGesture {
-                         withAnimation {
-                             isThumbnailVisible = false
-                         }
-                     }
+//                // 🔸 メイン画像をクリックしたらサムネイルを隠す
+//                Color.clear
+//                     .contentShape(Rectangle())
+//                     .onTapGesture {
+//                         withAnimation {
+//                             isThumbnailVisible = false
+//                         }
+//                     }
+                
+                ClickForwardingView {
+                    withAnimation {
+                        isThumbnailVisible = false
+                    }
+                }
+                
                 
                 // 🔸 マウスの移動を監視するカスタムビュー
                 MouseTrackingView { location in
@@ -216,233 +223,44 @@ struct MouseTrackingView: NSViewRepresentable {
 
 
 
+struct ClickForwardingView: NSViewRepresentable {
+    var onClick: () -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = ForwardingView()
+        view.action = onClick
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    class ForwardingView: NSView {
+        var action: (() -> Void)?
+
+        override func mouseDown(with event: NSEvent) {
+            action?()
+        }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            return self
+        }
+
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+            return true
+        }
+
+        override func mouseDragged(with event: NSEvent) {
+            // 何もしない = スワイプなどをNSPageControllerに譲る
+        }
+
+        override func scrollWheel(with event: NSEvent) {
+            // スクロールも譲る
+            super.scrollWheel(with: event)
+        }
+    }
+}
 
 
 
-
-
-
-
-
-
-////import SwiftUI
-////
-////struct ContentView: View {
-////    @StateObject private var controller = PageControllerWrapper()
-////    @State private var isThumbnailVisible = true
-////    @State private var canToggleThumbnail = true
-////    @State private var hideTask: DispatchWorkItem?
-////
-////    var body: some View {
-////        ZStack {
-////            VStack(spacing: 0) {
-////                ZStack {
-////                    PageControllerRepresentable(controller: controller)
-////                        .edgesIgnoringSafeArea(.all)
-////
-////                    MouseTrackingView { location in
-////                        guard canToggleThumbnail else { return }
-////                        canToggleThumbnail = false
-////                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-////                            canToggleThumbnail = true
-////                        }
-////
-////                        let threshold: CGFloat = 150
-////                        if location.y <= threshold {
-////                            withAnimation {
-////                                isThumbnailVisible = true
-////                            }
-////                            hideTask?.cancel()
-////                        } else {
-////                            let task = DispatchWorkItem {
-////                                withAnimation {
-////                                    isThumbnailVisible = false
-////                                }
-////                            }
-////                            hideTask?.cancel()
-////                            hideTask = task
-////                            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
-////                        }
-////                    }
-////                }
-////
-////                if isThumbnailVisible {
-////                    ThumbnailScrollView(
-////                        imageURLs: controller.imagePaths,
-////                        currentIndex: $controller.selectedIndex,
-////                        isThumbnailVisible: $isThumbnailVisible
-////                    )
-////                    .frame(height: 100)
-////                    .background(Color.black.opacity(0.8))
-////                    .transition(.move(edge: .bottom).combined(with: .opacity))
-////                }
-////            }
-////
-////            //中央に「フォルダを開く」ボタン（画像未読み込み時のみ表示）
-////            if controller.imagePaths.isEmpty {
-////                VStack {
-////                    Button(action: {
-////                        NotificationCenter.default.post(name: .openFolder, object: nil)
-////                    }) {
-////                        Text("Open Folder")
-////                            .padding(.horizontal, 24)
-////                            .padding(.vertical, 12)
-////                            .background(Color.white.opacity(0.1))
-////                            .foregroundColor(.white)
-////                            .cornerRadius(12)
-////                    }
-////                    .buttonStyle(PlainButtonStyle()) // ← これでグレーの縁取りを削除
-////                }
-////                .frame(maxWidth: .infinity, maxHeight: .infinity)
-////                .background(Color.black.opacity(0.8))
-////            }
-////
-////
-////        }
-////    }
-////}
-//
-//import SwiftUI
-//
-//struct ContentView: View {
-//    @StateObject private var controller = PageControllerWrapper()
-//    @State private var isThumbnailVisible = true
-//    @State private var canToggleThumbnail = true
-//    @State private var hideTask: DispatchWorkItem?
-//    
-//    var body: some View {
-//        VStack(spacing: 0) {
-//            ZStack {
-//                PageControllerRepresentable(controller: controller)
-//                    .edgesIgnoringSafeArea(.all)
-//                
-//                MouseTrackingView { location in
-//                    guard canToggleThumbnail else { return }
-//                    canToggleThumbnail = false
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                        canToggleThumbnail = true
-//                    }
-//                    
-//                    let threshold: CGFloat = 150
-//                    if location.y <= threshold {
-//                        withAnimation {
-//                            isThumbnailVisible = true
-//                        }
-//                        hideTask?.cancel()
-//                    } else {
-//                        let task = DispatchWorkItem {
-//                            withAnimation {
-//                                isThumbnailVisible = false
-//                            }
-//                        }
-//                        hideTask?.cancel()
-//                        hideTask = task
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
-//                    }
-//                }
-//            }
-//            
-//            //中央に「フォルダを開く」ボタン（画像未読み込み時のみ表示）
-//            if controller.imagePaths.isEmpty {
-//                VStack {
-//                    Button(action: {
-//                        NotificationCenter.default.post(name: .openFolder, object: nil)
-//                    }) {
-//                        Text("Open Folder")
-//                            .padding(.horizontal, 24)
-//                            .padding(.vertical, 12)
-//                            .background(Color.white.opacity(0.1))
-//                            .foregroundColor(.white)
-//                            .cornerRadius(12)
-//                    }
-//                    .buttonStyle(PlainButtonStyle()) // ← これでグレーの縁取りを削除
-//                }
-//                .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                .background(Color.black.opacity(0.8))
-//            }
-//            
-//            
-//            // 🔻 サムネイルエリアにメニューを追加
-//            if isThumbnailVisible {
-//                VStack(spacing: 0) {
-//                    // 🔹 カスタムメニュー（中央揃え & 黒背景）
-//                    HStack(spacing: 24) {
-//                        Button(action: { controller.selectedIndex = max(controller.selectedIndex - 10, 0) }) {
-//                            Image(systemName: "arrow.uturn.left")
-//                        }
-//                        Button(action: { controller.selectedIndex = max(controller.selectedIndex - 1, 0) }) {
-//                            Image(systemName: "chevron.left")
-//                        }
-//                        Button(action: { controller.selectedIndex = min(controller.selectedIndex + 1, controller.imagePaths.count - 1) }) {
-//                            Image(systemName: "chevron.right")
-//                        }
-//                        Button(action: { controller.selectedIndex = min(controller.selectedIndex + 10, controller.imagePaths.count - 1) }) {
-//                            Image(systemName: "arrow.uturn.right")
-//                        }
-//                        Button(action: {
-//                            withAnimation {
-//                                isThumbnailVisible = false
-//                            }
-//                        }) {
-//                            Image(systemName: "xmark")
-//                        }
-//                    }
-//                    .padding(.vertical, 8)
-//                    .frame(maxWidth: .infinity)
-//                    .background(Color.black.opacity(0.85)) // 背景を黒に
-//                    
-//                    // 🔹 サムネイルビュー本体
-//                    ThumbnailScrollView(
-//                        imageURLs: controller.imagePaths,
-//                        currentIndex: $controller.selectedIndex,
-//                        isThumbnailVisible: $isThumbnailVisible
-//                    )
-//                    .frame(height: 100)
-//                    .background(Color.black.opacity(0.8))
-//                    .transition(.move(edge: .bottom).combined(with: .opacity))
-//                }
-//            }
-//        }
-//    }
-//    
-//    // サムネイルスクロール用（仮の動作）
-//    func scrollThumbnail(by offset: Int) {
-//        let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-//        controller.selectedIndex = newIndex
-//    }
-//}
-//
-//
-//
-//struct MouseTrackingView: NSViewRepresentable {
-//    var onMove: (CGPoint) -> Void
-//    
-//    func makeNSView(context: Context) -> NSView {
-//        let trackingView = TrackingNSView()
-//        trackingView.onMove = onMove
-//        return trackingView
-//    }
-//    
-//    func updateNSView(_ nsView: NSView, context: Context) {}
-//    
-//    class TrackingNSView: NSView {
-//        var onMove: ((CGPoint) -> Void)?
-//        
-//        override func updateTrackingAreas() {
-//            super.updateTrackingAreas()
-//            trackingAreas.forEach(removeTrackingArea)
-//            let area = NSTrackingArea(rect: bounds,
-//                                      options: [.mouseMoved, .activeInKeyWindow, .inVisibleRect],
-//                                      owner: self, userInfo: nil)
-//            addTrackingArea(area)
-//        }
-//        
-//        override func mouseMoved(with event: NSEvent) {
-//            onMove?(convert(event.locationInWindow, from: nil))
-//        }
-//        
-//        override func hitTest(_ point: NSPoint) -> NSView? {
-//            return nil
-//        }
-//    }
-//}
