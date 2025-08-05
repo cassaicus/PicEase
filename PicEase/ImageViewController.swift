@@ -42,7 +42,18 @@ class ImageViewController: NSViewController {
         containerView.onZoom = { [weak self] scaleDelta, location in
             self?.zoom(by: scaleDelta, at: location)
         }
+        
+        let click = NSClickGestureRecognizer(target: self, action: #selector(imageClicked(_:)))
+        click.numberOfClicksRequired = 1
+        view.addGestureRecognizer(click)
+        
     }
+    
+    @objc func imageClicked(_ sender: NSClickGestureRecognizer) {
+        NotificationCenter.default.post(name: .mainImageClicked, object: nil)
+    }
+    
+    
 
     func setImage(url: URL) {
         imageView.image = NSImage(contentsOf: url)

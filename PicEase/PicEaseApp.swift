@@ -47,4 +47,8 @@ extension Notification.Name {
     static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
     // サムネイル選択の通知名
     static let thumbnailSelected = Notification.Name("thumbnailSelected")
+    
+    static let mainImageClicked = Notification.Name("mainImageClicked")
+
+
 }
