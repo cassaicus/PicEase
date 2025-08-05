@@ -26,15 +26,13 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         transitionStyle = .horizontalStrip // 横スクロール
         
         // 通知を購読
-        
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(openFolderFromBookmark(_:)),
-            name: .openFolderFromBookmark,
+            selector: #selector(openFolder),
+            name: .openFolder,
             object: nil
         )
-        
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(openExternalImage(_:)),
@@ -42,6 +40,13 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             object: nil
         )
 
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openFolderFromBookmark(_:)),
+            name: .openFolderFromBookmark,
+            object: nil
+        )
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(thumbnailSelected(_:)),
@@ -53,6 +58,41 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(self)
+    }
+    
+    @objc func openFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        
+        if panel.runModal() == .OK, let url = panel.url {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fm = FileManager.default
+                let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+                
+                let images = items?.filter {
+                    ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
+                        .contains($0.pathExtension.lowercased())
+                }.sorted {
+                    $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+                } ?? []
+                
+                DispatchQueue.main.async {
+                    if images.isEmpty {
+                        //アラート表示
+                        let alert = NSAlert()
+                        alert.messageText = "NO image"
+                        alert.informativeText = "this folder has no image"
+                        alert.alertStyle = .warning
+                        alert.runModal()
+                        return
+                    }
+                    
+                    self.wrapper.setImages(images)
+                }
+            }
+        }
     }
     
     @objc func openExternalImage(_ notification: Notification) {
@@ -97,133 +137,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                 self.wrapper.setImages([url])
             }
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //var optionURLS = true
-        
-//        if let url = notification.object as? URL {
-//            if optionURLS {
-//                //単体画像として開く
-//                wrapper.setImages([url])
-//            } else {
-//                // 最初のURLが存在しなければ処理終了
-//                guard let selectedFileURL = notification.object as? URL else { return }
-//                // 対象ファイルのあるフォルダのURLを取得
-//                let folderURL = selectedFileURL.deletingLastPathComponent()
-//                // フォルダ選択ダイアログのインスタンス生成
-//                let panel = NSOpenPanel()
-//                // ファイル選択を不可に
-//                panel.canChooseFiles = false
-//                // フォルダ選択を可能に
-//                panel.canChooseDirectories = true
-//                // 複数選択不可
-//                panel.allowsMultipleSelection = false
-//                // ダイアログのボタン名
-//                panel.prompt = "Select"
-//                // 初期ディレクトリを設定（現在のファイルのフォルダ）
-//                panel.directoryURL = folderURL
-//                
-//                // フォルダが選択された場合のみ処理を続ける
-//                if panel.runModal() == .OK, let confirmedFolder = panel.url {
-//                    // 対応する画像拡張子の配列
-//                    let allowedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                    
-//                    // フォルダ内のすべてのファイルを取得（隠しファイルは除外）
-//                    if let files = try? FileManager.default.contentsOfDirectory(
-//                        at: confirmedFolder,
-//                        includingPropertiesForKeys: nil,
-//                        options: [.skipsHiddenFiles]
-//                    ) {
-//                        // 対象となる画像ファイルだけをフィルタして並べ替える
-//                        let imageFiles = files
-//                            .filter { allowedExtensions.contains($0.pathExtension.lowercased()) }
-//                        //Finder風の自然順ソート
-//                            .sorted {
-//                                $0.lastPathComponent
-//                                    .localizedStandardCompare($1.lastPathComponent)
-//                                == .orderedAscending
-//                            }
-//                        // 一枚も画像がなければ終了
-//                        guard !imageFiles.isEmpty else { return }
-//                        
-//                        print("imageFiles")
-//                    }
-//                }
-//            }
-//        }
-        
-        
     }
-    
-//    @objc func openExternalImage(_ notification: Notification) {
-//        print("openExternalImage")
-//        var optionURLS = true
-//        
-//        if let url = notification.object as? URL {
-//            if optionURLS {
-//                //単体画像として開く
-//                wrapper.setImages([url])
-//            } else {
-//                // 最初のURLが存在しなければ処理終了
-//                guard let selectedFileURL = notification.object as? URL else { return }
-//                // 対象ファイルのあるフォルダのURLを取得
-//                let folderURL = selectedFileURL.deletingLastPathComponent()
-//                // フォルダ選択ダイアログのインスタンス生成
-//                let panel = NSOpenPanel()
-//                // ファイル選択を不可に
-//                panel.canChooseFiles = false
-//                // フォルダ選択を可能に
-//                panel.canChooseDirectories = true
-//                // 複数選択不可
-//                panel.allowsMultipleSelection = false
-//                // ダイアログのボタン名
-//                panel.prompt = "Select"
-//                // 初期ディレクトリを設定（現在のファイルのフォルダ）
-//                panel.directoryURL = folderURL
-//                
-//                // フォルダが選択された場合のみ処理を続ける
-//                if panel.runModal() == .OK, let confirmedFolder = panel.url {
-//                    // 対応する画像拡張子の配列
-//                    let allowedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                    
-//                    // フォルダ内のすべてのファイルを取得（隠しファイルは除外）
-//                    if let files = try? FileManager.default.contentsOfDirectory(
-//                        at: confirmedFolder,
-//                        includingPropertiesForKeys: nil,
-//                        options: [.skipsHiddenFiles]
-//                    ) {
-//                        // 対象となる画像ファイルだけをフィルタして並べ替える
-//                        let imageFiles = files
-//                            .filter { allowedExtensions.contains($0.pathExtension.lowercased()) }
-//                        //Finder風の自然順ソート
-//                            .sorted {
-//                                $0.lastPathComponent
-//                                    .localizedStandardCompare($1.lastPathComponent)
-//                                == .orderedAscending
-//                            }
-//                        // 一枚も画像がなければ終了
-//                        guard !imageFiles.isEmpty else { return }
-//                        
-//                        print("imageFiles")
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     
     @objc func openFolderFromBookmark(_ notification: Notification) {
         if let url = notification.object as? URL {
@@ -253,140 +167,21 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                     } ?? []
                     
                     DispatchQueue.main.async {
+                        if images.isEmpty {
+                            //アラート表示
+                            let alert = NSAlert()
+                            alert.messageText = "NO image"
+                            alert.informativeText = "this folder has no image"
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                            return
+                        }
                         self.wrapper.setImages(images)
                     }
                 }
             }
         }
     }
-    
-    
-    
-//    @objc func openfo(_ urls: [URL]) {
-//        guard let firstURL = urls.first else { return }
-//        let folderURL = firstURL.deletingLastPathComponent()
-//        
-//        let panel = NSOpenPanel()
-//        panel.canChooseDirectories = true
-//        panel.canChooseFiles = false
-//        panel.allowsMultipleSelection = false
-//        panel.prompt = "Select"
-//        panel.directoryURL = folderURL // ここが目的の指定
-//        
-//        if panel.runModal() == .OK, let url = panel.url {
-//            DispatchQueue.global(qos: .userInitiated).async {
-//                let fm = FileManager.default
-//                let items = try? fm.contentsOfDirectory(
-//                    at: url,
-//                    includingPropertiesForKeys: nil,
-//                    options: [.skipsHiddenFiles]
-//                )
-//                
-//                let images = items?.filter {
-//                    ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                        .contains($0.pathExtension.lowercased())
-//                }.sorted {
-//                    $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
-//                } ?? []
-//                
-//                DispatchQueue.main.async {
-//                    self.wrapper.setImages(images)
-//                }
-//            }
-//        }
-//    }
-    
-    
-//    @objc func openfou(_ notification: URL) {
-//        print("openfou")
-//        var optionURLS = false
-//        
-//        if let url = notification as? URL {
-//            if optionURLS {
-//                //単体画像として開く
-//                wrapper.setImages([url])
-//            } else {
-//                // 最初のURLが存在しなければ処理終了
-//                guard let selectedFileURL = notification as? URL else { return }
-//                // 対象ファイルのあるフォルダのURLを取得
-//                let folderURL = selectedFileURL.deletingLastPathComponent()
-//                // フォルダ選択ダイアログのインスタンス生成
-//                let panel = NSOpenPanel()
-//                // ファイル選択を不可に
-//                panel.canChooseFiles = false
-//                // フォルダ選択を可能に
-//                panel.canChooseDirectories = true
-//                // 複数選択不可
-//                panel.allowsMultipleSelection = false
-//                // ダイアログのボタン名
-//                panel.prompt = "Select"
-//                // 初期ディレクトリを設定（現在のファイルのフォルダ）
-//                panel.directoryURL = folderURL
-//                
-//                // フォルダが選択された場合のみ処理を続ける
-//                if panel.runModal() == .OK, let confirmedFolder = panel.url {
-//                    // 対応する画像拡張子の配列
-//                    let allowedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                    
-//                    // フォルダ内のすべてのファイルを取得（隠しファイルは除外）
-//                    if let files = try? FileManager.default.contentsOfDirectory(
-//                        at: confirmedFolder,
-//                        includingPropertiesForKeys: nil,
-//                        options: [.skipsHiddenFiles]
-//                    ) {
-//                        // 対象となる画像ファイルだけをフィルタして並べ替える
-//                        let imageFiles = files
-//                            .filter { allowedExtensions.contains($0.pathExtension.lowercased()) }
-//                        //Finder風の自然順ソート
-//                            .sorted {
-//                                $0.lastPathComponent
-//                                    .localizedStandardCompare($1.lastPathComponent)
-//                                == .orderedAscending
-//                            }
-//                        // 一枚も画像がなければ終了
-//                        //guard !imageFiles.isEmpty else { return }
-//                        
-//                        print(imageFiles)
-//                        
-//                        
-//                        self.wrapper.setImages(imageFiles)
-//                        
-//                    }
-//                }
-//            }
-//        }
-//    }
-    
-    
-    
-//    @objc func openFolder() {
-//        let panel = NSOpenPanel()
-//        panel.canChooseDirectories = true
-//        panel.canChooseFiles = false
-//        panel.allowsMultipleSelection = false
-//        
-//        if panel.runModal() == .OK, let url = panel.url {
-//            DispatchQueue.global(qos: .userInitiated).async {
-//                let fm = FileManager.default
-//                let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
-//                
-//                let images = items?.filter {
-//                    ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                        .contains($0.pathExtension.lowercased())
-//                }.sorted {
-//                    $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
-//                } ?? []
-//                
-//                DispatchQueue.main.async {
-//                    self.wrapper.setImages(images)
-//                }
-//            }
-//        }
-//    }
-    
-    
-    
-    
     
     // サムネイルが選択されたときの処理
     @objc func thumbnailSelected(_ notification: Notification) {
@@ -424,8 +219,6 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
     
-
-    
     // キーボード操作（←→）でナビゲート可能に
     override func keyDown(with event: NSEvent) {
         // 入力ロック中なら無視
@@ -434,9 +227,9 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         keyInputLocked = true
         //判定
         switch event.keyCode {
-            // →
+        // →
         case 124: navigateForward(nil)
-            // ←
+        // ←
         case 123: navigateBack(nil)
         default: super.keyDown(with: event)
         }
@@ -447,22 +240,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     }
     override var acceptsFirstResponder: Bool { true } // キー入力を受け付ける
 
-    
-    
     func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
         pageController.completeTransition()
     }
 }
-
-
-//
-//class ImagePageControllerWrapper: ObservableObject {
-//    let controller: ImagePageController
-//    
-//    init(model: PageControllerWrapper) {
-//        controller = ImagePageController(controller: model)
-//    }
-//    func openFolder(_ url: URL) {
-//        controller.openFolder()
-//    }
-//}

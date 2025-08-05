@@ -11,7 +11,8 @@ struct ThumbnailImageView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {
-                Color.gray.opacity(0.3) // 読み込み中はプレースホルダー
+                // 読み込み中はプレースホルダー
+                Color.gray.opacity(0.3)
             }
         }
         .onAppear {

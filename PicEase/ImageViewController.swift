@@ -42,8 +42,6 @@ class ImageViewController: NSViewController {
         containerView.onZoom = { [weak self] scaleDelta, location in
             self?.zoom(by: scaleDelta, at: location)
         }
-        
-        
     }
 
     func setImage(url: URL) {
@@ -122,10 +120,6 @@ class ImageViewController: NSViewController {
 
         applyTransform(iv: imageView)
     }
-    
-    
-    
-    
     
     class ZoomableImageViewContainer: NSView {
         var onZoom: ((CGFloat, CGPoint) -> Void)?

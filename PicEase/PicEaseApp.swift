@@ -4,7 +4,6 @@ import SwiftUI
 @main
 struct PicEaseApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
     // ImageViewerModel をアプリ全体で共有
     @StateObject private var model = PageControllerWrapper()
     // BookmarkStore も同様に共有
@@ -17,8 +16,6 @@ struct PicEaseApp: App {
         let model = PageControllerWrapper()
         _model = StateObject(wrappedValue: model)
         _bookmarkStore = StateObject(wrappedValue: BookmarkStore(model: model))
-       // _imagePageControllerWrapper = StateObject(wrappedValue: ImagePageControllerWrapper(model: model))
-
     }
 
     var body: some Scene {
@@ -26,28 +23,28 @@ struct PicEaseApp: App {
             ContentView()
                 .environmentObject(model)
                 .environmentObject(bookmarkStore)
-                //.environmentObject(imagePageControllerWrapper)
-
         }
         .windowStyle(HiddenTitleBarWindowStyle())
-
         // ブックマーク機能を追加
         .commands {
+            
+            FileCommands()            // File メニュー定義
+
             BookmarkCommands(
                 store: bookmarkStore,
                 model: model
-                //,imagePageController: imagePageControllerWrapper
             )
         }
     }
 }
 
 extension Notification.Name {
-    // サムネイル選択の通知名
-    static let thumbnailSelected = Notification.Name("thumbnailSelected")
+    //openFolder
+    static let openFolder = Notification.Name("openFolder")
     //AppDelegateからファイルを開く
     static let openFromExternal = Notification.Name("openFromExternal")
     // Bookmarkフォルダーオープンの通知名
     static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
-
+    // サムネイル選択の通知名
+    static let thumbnailSelected = Notification.Name("thumbnailSelected")
 }

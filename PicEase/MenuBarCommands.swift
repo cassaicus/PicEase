@@ -1,19 +1,19 @@
-import SwiftUI        // SwiftUIのUI要素やデータバインディングを使用
-import Combine        // ObservableObjectなどリアクティブ機能を使用
-
-
+// SwiftUIのUI要素やデータバインディングを使用
+import SwiftUI
+// ObservableObjectなどリアクティブ機能を使用
+import Combine
 
 struct FileCommands: Commands {
     var body: some Commands {
         CommandMenu("File") {
-            Button("フォルダーを開く") {
+            Button("Open Folder") {
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
             .keyboardShortcut("O", modifiers: [.command])
 
             Divider()
 
-            Button("終了") {
+            Button("Quit") {
                 NSApp.terminate(nil)
             }
             .keyboardShortcut("Q", modifiers: [.command])
@@ -21,16 +21,76 @@ struct FileCommands: Commands {
     }
 }
 
+// SwiftUIのメニューコマンド拡張（CommandMenu）を定義
+struct BookmarkCommands: Commands {
+    // ブックマーク管理
+    @ObservedObject var store: BookmarkStore
+    // 現在の画像情報
+    @ObservedObject var model: PageControllerWrapper
+    // フォルダを開くために必要な機能を持つ
+    //@ObservedObject var imagePageController: ImagePageControllerWrapper
 
+    var body: some Commands {
+        // メニュータイトル「Bookmark」
+        CommandMenu("Bookmark") {
+            
+            //AddBookmarkメニュー
+            Button("AddBookmark") {
+                guard model.imagePaths.indices.contains(model.selectedIndex) else { return }
+                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
+                store.addBookmark(from: folderURL)
+            }
+            // currentIndex が無効、または URL がフォルダにならない場合に無効化
+            .disabled({
+                guard model.imagePaths.indices.contains(model.selectedIndex) else { return true }
+                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
+                return !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil)
+            }())
 
-
-
-
-
-
-
-
-
+            // BookmarkFolder Select
+            Button(action: {
+                store.FolderSelect()
+            }) {
+                Text("BookmarkFolder Select")
+            }
+            
+            // 現在の画像のフォルダをブックマークから削除
+            Menu("RemoveBookmark") {
+                if store.items.isEmpty {
+                    Text("No bookmarks")
+                } else {
+                    ForEach(store.items) { bookmark in
+                        Button(bookmark.title) {
+                            store.removeBookmark(for: bookmark.url)
+                        }
+                    }
+                    // 区切り線
+                    Divider()
+                    // ブックマークをすべて削除
+                    Button(action: {
+                        store.removeAll()
+                    }) {
+                        Text("RemoveAll")
+                    }
+                }
+            }
+            
+            // 区切り線
+            Divider()
+            
+            // ブックマークされた各フォルダをリスト表示
+            ForEach(store.items) { bookmark in
+                Button(action: {
+                    // ImagePageControllerへ通知
+                   NotificationCenter.default.post(name: .openFolderFromBookmark, object: bookmark.url)
+                }) {
+                    // メニュー項目にフォルダ名を表示
+                    Text(bookmark.title)
+                }
+            }
+        }
+    }
+}
 
 // ブックマーク管理用のデータモデル（フォルダの登録・削除・保存を行う）
 class BookmarkStore: ObservableObject {
@@ -136,74 +196,3 @@ class BookmarkStore: ObservableObject {
     
 }
 
-
-// SwiftUIのメニューコマンド拡張（CommandMenu）を定義
-struct BookmarkCommands: Commands {
-    // ブックマーク管理
-    @ObservedObject var store: BookmarkStore
-    // 現在の画像情報
-    @ObservedObject var model: PageControllerWrapper
-    // フォルダを開くために必要な機能を持つ
-    //@ObservedObject var imagePageController: ImagePageControllerWrapper
-
-    var body: some Commands {
-        // メニュータイトル「Bookmark」
-        CommandMenu("Bookmark") {
-            
-            //AddBookmarkメニュー
-            Button("AddBookmark") {
-                guard model.imagePaths.indices.contains(model.selectedIndex) else { return }
-                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
-                store.addBookmark(from: folderURL)
-            }
-            // currentIndex が無効、または URL がフォルダにならない場合に無効化
-            .disabled({
-                guard model.imagePaths.indices.contains(model.selectedIndex) else { return true }
-                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
-                return !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil)
-            }())
-
-            // BookmarkFolder Select
-            Button(action: {
-                store.FolderSelect()
-            }) {
-                Text("BookmarkFolder Select")
-            }
-            
-            // 現在の画像のフォルダをブックマークから削除
-            Menu("RemoveBookmark") {
-                if store.items.isEmpty {
-                    Text("No bookmarks")
-                } else {
-                    ForEach(store.items) { bookmark in
-                        Button(bookmark.title) {
-                            store.removeBookmark(for: bookmark.url)
-                        }
-                    }
-                    // 区切り線
-                    Divider()
-                    // ブックマークをすべて削除
-                    Button(action: {
-                        store.removeAll()
-                    }) {
-                        Text("RemoveAll")
-                    }
-                }
-            }
-            
-            // 区切り線
-            Divider()
-            
-            // ブックマークされた各フォルダをリスト表示
-            ForEach(store.items) { bookmark in
-                Button(action: {
-                    // ImagePageControllerへ通知
-                   NotificationCenter.default.post(name: .openFolderFromBookmark, object: bookmark.url)
-                }) {
-                    // メニュー項目にフォルダ名を表示
-                    Text(bookmark.title)
-                }
-            }
-        }
-    }
-}
