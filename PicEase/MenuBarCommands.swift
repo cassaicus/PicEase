@@ -1,6 +1,37 @@
 import SwiftUI        // SwiftUIのUI要素やデータバインディングを使用
 import Combine        // ObservableObjectなどリアクティブ機能を使用
 
+
+
+struct FileCommands: Commands {
+    var body: some Commands {
+        CommandMenu("File") {
+            Button("フォルダーを開く") {
+                NotificationCenter.default.post(name: .openFolder, object: nil)
+            }
+            .keyboardShortcut("O", modifiers: [.command])
+
+            Divider()
+
+            Button("終了") {
+                NSApp.terminate(nil)
+            }
+            .keyboardShortcut("Q", modifiers: [.command])
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // ブックマーク管理用のデータモデル（フォルダの登録・削除・保存を行う）
 class BookmarkStore: ObservableObject {
 
