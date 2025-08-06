@@ -39,6 +39,8 @@ struct PicEaseApp: App {
 extension Notification.Name {
     //openFolder
     static let openFolder = Notification.Name("openFolder")
+    //openFolder
+    static let openImage = Notification.Name("openImage")
     //AppDelegateからファイルを開く
     static let openFromExternal = Notification.Name("openFromExternal")
     // Bookmarkフォルダーオープンの通知名
@@ -48,7 +50,6 @@ extension Notification.Name {
     //メイン画像クリック
     static let mainImageClicked = Notification.Name("mainImageClicked")
     //強制再描写
-    //static let forceRebuildLayout = Notification.Name("forceRebuildLayout")
     static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
 
 }

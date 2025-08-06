@@ -34,14 +34,21 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             name: .openFolder,
             object: nil
         )
-
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openImage),
+            name: .openImage,
+            object: nil
+        )
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(openExternalImage(_:)),
             name: .openFromExternal,
             object: nil
         )
-
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(openFolderFromBookmark(_:)),
@@ -64,7 +71,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         
     }
     
-
+    
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(self)
@@ -100,6 +107,32 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                     }
                     
                     self.wrapper.setImages(images)
+                }
+            }
+        }
+    }
+    
+    @objc func openImage() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        //panel.allowedFileTypes = ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
+        // 拡張子ではなく UTType で指定
+        panel.allowedContentTypes = [
+            .png,
+            .jpeg,
+            .gif,
+            .bmp,
+            .webP   // macOS 14 以降なら .webP が利用可能
+        ]
+        panel.allowsOtherFileTypes = false
+        // モーダル表示
+        if panel.runModal() == .OK, let selectedURL = panel.url {
+            DispatchQueue.main.async {
+                // wrapper.setImages が [URL] を受け取る場合は配列に包む
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.wrapper.setImages([selectedURL])
                 }
             }
         }
@@ -237,9 +270,9 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         keyInputLocked = true
         //判定
         switch event.keyCode {
-        // →
+            // →
         case 124: navigateForward(nil)
-        // ←
+            // ←
         case 123: navigateBack(nil)
         default: super.keyDown(with: event)
         }
@@ -249,34 +282,41 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
     override var acceptsFirstResponder: Bool { true } // キー入力を受け付ける
-
+    
     func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
         pageController.completeTransition()
-    }    
+    }
     
     @objc func refreshCurrentPage() {
+        
         let count = arrangedObjects.count
         let idx = selectedIndex
-
-        guard count > 0 else { return }
-
-        if count == 1 {
-            // 画像が1枚だけなら index を変えずに再設定
-            selectedIndex = idx
+        
+        if count > 1 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.selectedIndex = idx == 0 ? 1 : 0
+                self.selectedIndex = idx
+            }
+        } else {
             return
         }
-
-        if idx + 1 < count {
-            selectedIndex = idx + 1
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.selectedIndex = idx
-            }
-        } else if idx > 0 {
-            selectedIndex = idx - 1
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.selectedIndex = idx
-            }
-        }
     }
-
 }
+
+
+//self.arrangedObjects = self.arrangedObjects
+
+//self.wrapper.forceReload()
+
+
+//        if idx + 1 < count {
+//            selectedIndex = idx + 1
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                self.selectedIndex = idx
+//            }
+//        } else if idx > 0 {
+//            selectedIndex = idx - 1
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                self.selectedIndex = idx
+//            }
+//        }

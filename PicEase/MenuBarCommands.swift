@@ -6,6 +6,12 @@ import Combine
 struct FileCommands: Commands {
     var body: some Commands {
         CommandMenu("File") {
+
+            Button("Open Image") {
+                NotificationCenter.default.post(name: .openImage, object: nil)
+            }
+            .keyboardShortcut("I", modifiers: [.command])
+
             Button("Open Folder") {
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
@@ -50,11 +56,11 @@ struct BookmarkCommands: Commands {
             Button(action: {
                 store.FolderSelect()
             }) {
-                Text("BookmarkFolder Select")
+                Text("Add BookmarkFolder")
             }
             
             // 現在の画像のフォルダをブックマークから削除
-            Menu("RemoveBookmark") {
+            Menu("Remove Bookmark") {
                 if store.items.isEmpty {
                     Text("No bookmarks")
                 } else {
@@ -160,7 +166,7 @@ class BookmarkStore: ObservableObject {
         // 複数選択不可
         panel.allowsMultipleSelection = false
         // ダイアログのボタン名
-        panel.prompt = "select"
+        panel.prompt = "Select"
         
         // ユーザーが「選択」ボタンを押し、かつフォルダが選択された場合のみ処理を続行
         if panel.runModal() == .OK, let confirmedFolder = panel.url {

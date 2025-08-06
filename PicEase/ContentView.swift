@@ -11,29 +11,20 @@ enum ButtonSize {
 //  メインビュー
 struct ContentView: View {
     // ページコントローラの管理
-    
     @StateObject private var controller = PageControllerWrapper()
     // サムネイル表示フラグ
     @State private var isThumbnailVisible = true
     // サムネイル切り替え制御用フラグ
-    
     @State private var canToggleThumbnail = true
     // 遅延で非表示にする処理
-    
     @State private var hideTask: DispatchWorkItem?
-    
-    
-    //@State private var isFullScreenFit = true
-    
-    //表示内容の強制リフレッシュ用バインディング
-    //@Binding var viewerID: UUID
-    // NSPageController を強制再構築するための識別子（主にリサイズ・見開き用）
-    //@State private var viewerID = UUID()
-    
-    
+    //リザイズのwindowSize
+    @State private var windowSize: CGSize = .zero
+    //リサイズタスク
+    @State private var resizeTask: DispatchWorkItem?
     
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { geometry in
             // 縦方向に整列（隙間なし）
             VStack(spacing: 0) {
                 ZStack {
@@ -44,6 +35,7 @@ struct ContentView: View {
                             withAnimation {
                                 if isThumbnailVisible {
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                        //0.35後にrefreshCurrentPageを呼び出し再描写
                                         NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                                     }
                                 }
@@ -52,7 +44,8 @@ struct ContentView: View {
                         }
                     
                     MouseTrackingView { location in
-                        guard canToggleThumbnail else { return } // 切り替え制御
+                        // 切り替え制御
+                        guard canToggleThumbnail else { return }
                         canToggleThumbnail = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             canToggleThumbnail = true
@@ -72,17 +65,17 @@ struct ContentView: View {
                             }
                             hideTask?.cancel()
                             hideTask = task
+                            //マウスカーソルが反れて２秒後に動く
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
                         }
                     }
-                    
                     
                     //  フォルダが未選択の時に中央に表示する「Open Folder」ボタン
                     if controller.imagePaths.isEmpty {
                         ZStack {
                             // 背景：薄黒（画像が透ける）
                             Color.black.opacity(0.8)
-                            
+                            // Open Folderボタン
                             Button(action: {
                                 // フォルダ選択の通知を送信
                                 NotificationCenter.default.post(name: .openFolder, object: nil)
@@ -126,20 +119,20 @@ struct ContentView: View {
                             moveButton("chevron.right", offset: +10, controller: controller, size: .medium)
                             moveButton("chevron.right", offset: +50, controller: controller, size: .large)
                             
-                            
-                            
                             // 最後のボタンのすぐ右にインデックス表示
                             let currentIndex = controller.imagePaths.isEmpty ? 0 : controller.selectedIndex + 1
                             let totalCount = controller.imagePaths.count
                             Text("\(currentIndex) / \(totalCount)")
                                 .foregroundColor(.white)
                                 .font(.system(size: 14, weight: .medium))
-                            // ← ボタンと少し間隔をあける
+                            // ボタンと少し間隔をあける
                                 .padding(.leading, 4)
                             
+                            //fitImageボタン
                             iconButton("arrow.up.left.and.down.right.and.arrow.up.right.and.down.left") {
+                                //ウィンドウサイズを画像にフィットするように変更
                                 fitImageToWindow()
-                                //viewerID = UUID()
+                                //refreshCurrentPageを呼び出し再描写
                                 NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                             }
                             
@@ -148,11 +141,6 @@ struct ContentView: View {
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity)
                         .background(Color.black)
-                        
-                        
-                        
-                        
-                        
                         
                         // サムネイルのスクロールビュー
                         ThumbnailScrollView(
@@ -165,6 +153,27 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity)) // アニメーション付き表示
                     }
                 }
+            }
+//            .onAppear {
+//                windowSize = geometry.size
+//            }
+            .onChange(of: geometry.size) {
+                //ウィンドウのリサイズをキャッチ
+                // 既存タスクをキャンセル
+                resizeTask?.cancel()
+                // 新しいタスクを作成
+                let task = DispatchWorkItem {
+                    NotificationCenter.default.post(
+                        name: .refreshCurrentPage,
+                        object: nil
+                    )
+                }
+                resizeTask = task
+                // 0.35秒後にタスクを実行
+                DispatchQueue.main.asyncAfter(
+                    deadline: .now() + 0.35,
+                    execute: task
+                )
             }
         }
     }
@@ -194,7 +203,6 @@ struct ContentView: View {
     
     @ViewBuilder
     func moveButton(_ systemName: String, offset: Int, controller: PageControllerWrapper, size: ButtonSize = .medium) -> some View {
-        
         // サイズごとの定数を switch で取得
         let (buttonSize, iconSize): (CGFloat, CGFloat) = {
             switch size {
@@ -206,7 +214,6 @@ struct ContentView: View {
                 return (35, 16)
             }
         }()
-        
         Button(action: {
             let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
             controller.selectedIndex = newIndex
@@ -221,39 +228,30 @@ struct ContentView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    
-    
     func fitImageToWindow() {
         guard let window = NSApp.mainWindow,
               let screen = window.screen else { return }
-
         // 画像読み込み＆サイズ取得
         guard controller.imagePaths.indices.contains(controller.selectedIndex),
               let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex]) else {
             return
         }
         let imgSize = image.size
-
         // 利用可能領域／スケール
         let visible = screen.visibleFrame
         let scale = min(visible.width / imgSize.width,
                         visible.height / imgSize.height)
         let newWidth  = imgSize.width  * scale
         let newHeight = imgSize.height * scale
-
         // 現在位置を取得
         let currentOrigin = window.frame.origin
-
         // X のクランプ範囲を計算
         let minX = visible.minX
         let maxX = visible.maxX - newWidth
-
         // currentOrigin.x を [minX…maxX] の範囲内に制限
         let newX = min(max(currentOrigin.x, minX), maxX)
-
         // Y 位置は0固定（必要なら同様にクランプ可）
         let newY: CGFloat = 0.0
-
         // フレーム適用
         window.setFrame(
             NSRect(x: newX, y: newY, width: newWidth, height: newHeight),
@@ -261,7 +259,7 @@ struct ContentView: View {
             animate: true
         )
     }
-
+    
     // マウスの位置を監視するカスタムビュー（macOS用）
     struct MouseTrackingView: NSViewRepresentable {
         var onMove: (CGPoint) -> Void // マウス移動時に呼ばれるクロージャ
@@ -298,8 +296,6 @@ struct ContentView: View {
             }
             
             override func hitTest(_ point: NSPoint) -> NSView? {
-                
-                
                 // クリックイベントを透過
                 return nil
             }
