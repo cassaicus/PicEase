@@ -33,19 +33,18 @@ struct BookmarkCommands: Commands {
     var body: some Commands {
         // メニュータイトル「Bookmark」
         CommandMenu("Bookmark") {
-            
-            //AddBookmarkメニュー
-            Button("AddBookmark") {
-                guard model.imagePaths.indices.contains(model.selectedIndex) else { return }
-                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
-                store.addBookmark(from: folderURL)
-            }
-            // currentIndex が無効、または URL がフォルダにならない場合に無効化
-            .disabled({
-                guard model.imagePaths.indices.contains(model.selectedIndex) else { return true }
-                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
-                return !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil)
-            }())
+//            //AddBookmarkメニュー
+//            Button("AddBookmark") {
+//                guard model.imagePaths.indices.contains(model.selectedIndex) else { return }
+//                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
+//                store.addBookmark(from: folderURL)
+//            }
+//            // currentIndex が無効、または URL がフォルダにならない場合に無効化
+//            .disabled({
+//                guard model.imagePaths.indices.contains(model.selectedIndex) else { return true }
+//                let folderURL = model.imagePaths[model.selectedIndex].deletingLastPathComponent()
+//                return !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil)
+//            }())
 
             // BookmarkFolder Select
             Button(action: {
