@@ -8,8 +8,6 @@ struct PicEaseApp: App {
     @StateObject private var model = PageControllerWrapper()
     // BookmarkStore も同様に共有
     @StateObject private var bookmarkStore: BookmarkStore
-    //@StateObject private var imagePageControllerWrapper: ImagePageControllerWrapper
-    
     
     // 初期化時に BookmarkStore に model を渡す
     init() {
@@ -25,11 +23,11 @@ struct PicEaseApp: App {
                 .environmentObject(bookmarkStore)
         }
         .windowStyle(HiddenTitleBarWindowStyle())
-        // ブックマーク機能を追加
+        // Fileブックマーク機能を追加
         .commands {
-            
-            FileCommands()            // File メニュー定義
-
+            // File メニュー定義
+            FileCommands()
+            //bookmarkメニュー
             BookmarkCommands(
                 store: bookmarkStore,
                 model: model
@@ -47,8 +45,6 @@ extension Notification.Name {
     static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
     // サムネイル選択の通知名
     static let thumbnailSelected = Notification.Name("thumbnailSelected")
-    
+    //メイン画像クリック
     static let mainImageClicked = Notification.Name("mainImageClicked")
-
-
 }

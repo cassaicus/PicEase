@@ -2,8 +2,11 @@ import AppKit
 
 class ImageViewController: NSViewController {
     private var imageView = NSImageView()
-    private var isZoomed = false // ズーム状態を管理
-    private var zoomScale: CGFloat = 1.0 // ズーム倍率（1.0, 2.0, 4.0）
+    
+    // ズーム状態を管理
+    private var isZoomed = false
+    // ズーム倍率（1.0, 2.0, 4.0）
+    private var zoomScale: CGFloat = 1.0
 
 
     override func loadView() {
@@ -103,7 +106,7 @@ class ImageViewController: NSViewController {
     }
 
     
-    //パンしょり
+    //パン処理
     private func pan(by delta: NSPoint) {
         guard zoomScale > 1.0,
               let layer = imageView.layer else { return }
