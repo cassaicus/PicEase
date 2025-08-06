@@ -49,5 +49,6 @@ extension Notification.Name {
     static let mainImageClicked = Notification.Name("mainImageClicked")
     //強制再描写
     //static let forceRebuildLayout = Notification.Name("forceRebuildLayout")
+    static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
 
 }

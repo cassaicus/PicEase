@@ -30,12 +30,6 @@ struct ContentView: View {
     // NSPageController を強制再構築するための識別子（主にリサイズ・見開き用）
     //@State private var viewerID = UUID()
     
-    //@State private var containerSize: CGSize = .zero
-    
-    @State private var viewerID = UUID()
-    @State private var savedIndex: Int = 0
-    
-    
     
     
     var body: some View {
@@ -44,40 +38,19 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ZStack {
                     // ページ表示領域（画像のビュー）
-                    //PageControllerRepresentable(controller: controller)
-                    //PageControllerRepresentable(controller: controller)
-                    // Safe Area を無視して全画面表示
-                    //.id(viewerID) // ← ここがポイント
-                    //.id(viewerID)
-                    
-//                    
-//                        .onAppear { containerSize = geo.size }
-//                         .onChange(of: geo.size) { newSize in
-//                             containerSize = newSize
-//                         }
-//                        .onChange(of: geo.size) { _ in
-//                            savedIndex = controller.selectedIndex
-//                            viewerID = UUID()
-//                        }
-//                    
-//                        .edgesIgnoringSafeArea(.all)
-//                    
-//                        .onReceive(NotificationCenter.default.publisher(for: .mainImageClicked)) { _ in
-//                            withAnimation {
-//                                isThumbnailVisible = false
-//                            }
-//                        }
-                    
-                    PageControllerRepresentable(
-                        controller:  controller,
-                        dataArray:   controller.imagePaths,
-                        savedIndex:  savedIndex
-                    )
-                    .id(viewerID)
-                    
-                    
-                    
-                    // マウスの移動を監視するカスタムビュー
+                    PageControllerRepresentable(controller: controller)
+                        .edgesIgnoringSafeArea(.all)
+                        .onReceive(NotificationCenter.default.publisher(for: .mainImageClicked)) { _ in
+                            withAnimation {
+                                if isThumbnailVisible {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                        NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
+                                    }
+                                }
+                                isThumbnailVisible = false
+                            }
+                        }
+
                     MouseTrackingView { location in
                         guard canToggleThumbnail else { return } // 切り替え制御
                         canToggleThumbnail = false
@@ -102,6 +75,7 @@ struct ContentView: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
                         }
                     }
+                    
                     
                     //  フォルダが未選択の時に中央に表示する「Open Folder」ボタン
                     if controller.imagePaths.isEmpty {
@@ -146,6 +120,8 @@ struct ContentView: View {
                             
                             iconButton("arrow.up.left.and.down.right.and.arrow.up.right.and.down.left") {
                                 fitImageToWindow()
+                                //viewerID = UUID()
+                                NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                             }
                             
                             // 左側のボタン群
@@ -182,11 +158,7 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity)) // アニメーション付き表示
                     }
                 }
-                
             }
-            // サイズ変化を検知してIDを更新
-            
-            //.id(viewerID) // ← ここがポイント
         }
     }
     
@@ -243,30 +215,24 @@ struct ContentView: View {
     }
     
     func fitImageToWindow() {
-        // モードを切り替える
-        isFullScreenFit.toggle()
-        
         guard let window = NSApp.mainWindow,
               let screen = window.screen else { return }
-        
+        // モードを切り替える
+        isFullScreenFit.toggle()
         if isFullScreenFit {
-            // 1. 利用可能領域（メニューバー＋Dockを除いた画面領域）を取得
-            let availFrame = screen.visibleFrame
-            // 2. ウィンドウのアスペクト比制約を解除
-            window.contentAspectRatio = NSSize(width: 0, height: 0)
-            // 3. フレームをそのまま利用可能領域に合わせる
-            window.setFrame(availFrame, display: true, animate: true)
+            // メニューバーとDockを除いた利用可能領域を取得
+            let visibleFrame = screen.visibleFrame
+            // そのままフレームをセット
+            window.setFrame(visibleFrame, display: true, animate: true)
         }else{
             // 画像のアスペクト比に合わせてリサイズ
             guard controller.imagePaths.indices.contains(controller.selectedIndex),
                   let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex]) else {
                 return
             }
-            
             let imgSize = image.size
             guard let screen = NSApp.mainWindow?.screen else { return }
             let screenRect = screen.visibleFrame
-            
             let padding: CGFloat = 40 // 余白
             let maxWidth = screenRect.width - padding * 2
             let maxHeight = screenRect.height - padding * 2
@@ -281,29 +247,8 @@ struct ContentView: View {
             if let win = NSApp.mainWindow {
                 win.setFrame(NSRect(x: newX, y: newY, width: newWidth, height: newHeight), display: true, animate: true)
             }
-            
-            
-            //NotificationCenter.default.post(name: .forceRefreshLayout, object: nil)
-            
         }
-        //NotificationCenter.default.post(name: .resetScaling, object: nil)
-        
-        //NotificationCenter.default.post(name: .forceRefreshLayout, object: nil)
-        
-        //NotificationCenter.default.post(name: .forceRefreshCurrent, object: nil)
-        //NotificationCenter.default.post(name: .reloadCurrent, object: nil)
-        
-        //NotificationCenter.default.post(name: .forceRebuildLayout, object: nil)
-        
-        // viewerID = UUID()
-        
-        
     }
-
-    
-    
-    
-    
     
     // マウスの位置を監視するカスタムビュー（macOS用）
     struct MouseTrackingView: NSViewRepresentable {
@@ -341,6 +286,8 @@ struct ContentView: View {
             }
             
             override func hitTest(_ point: NSPoint) -> NSView? {
+                
+                
                 // クリックイベントを透過
                 return nil
             }

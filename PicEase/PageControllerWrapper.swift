@@ -11,7 +11,6 @@ class PageControllerWrapper: ObservableObject {
             }
         }
     }
-
     // 現在選択中のインデックス
     @Published var selectedIndex: Int = 0 {
         didSet {
@@ -21,7 +20,6 @@ class PageControllerWrapper: ObservableObject {
             }
         }
     }
-
     // 新しい画像リストを設定
     func setImages(_ urls: [URL]) {
         //imagePathsにURLを代入して画像を表示させる
@@ -29,7 +27,6 @@ class PageControllerWrapper: ObservableObject {
         // 最初の画像を選択状態に
         selectedIndex = 0
     }
-
     // 新しい画像リストとインデックス数を設定
     func setImagesIndex(_ urls: [URL], _ currentIndex: Int) {
         guard !urls.isEmpty else { return }

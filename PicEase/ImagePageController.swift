@@ -55,13 +55,12 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             name: .thumbnailSelected,
             object: nil)
         
-//        NotificationCenter.default.addObserver(
-//            self,
-//            selector: #selector(forceLayoutRebuild),
-//            name: .forceRebuildLayout,
-//            object: nil
-//        )
-//        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshCurrentPage),
+            name: .refreshCurrentPage,
+            object: nil
+        )
         
     }
     
@@ -253,17 +252,31 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
 
     func pageControllerDidEndLiveTransition(_ pageController: NSPageController) {
         pageController.completeTransition()
+    }    
+    
+    @objc func refreshCurrentPage() {
+        let count = arrangedObjects.count
+        let idx = selectedIndex
+
+        guard count > 0 else { return }
+
+        if count == 1 {
+            // 画像が1枚だけなら index を変えずに再設定
+            selectedIndex = idx
+            return
+        }
+
+        if idx + 1 < count {
+            selectedIndex = idx + 1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.selectedIndex = idx
+            }
+        } else if idx > 0 {
+            selectedIndex = idx - 1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.selectedIndex = idx
+            }
+        }
     }
+
 }
-//
-//extension ImagePageController {
-//    @objc func forceLayoutRebuild() {
-//        if let vc = self.selectedViewController as? ImageViewController {
-//            // 再レイアウトを要求
-//            vc.view.needsLayout = true
-//            vc.view.layoutSubtreeIfNeeded()
-//            // 必要なら描画も強制更新
-//            vc.view.layer?.setNeedsDisplay()
-//        }
-//    }
-//}

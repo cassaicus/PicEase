@@ -15,13 +15,10 @@ struct PageControllerRepresentable: NSViewControllerRepresentable {
     func updateNSViewController(_ nsViewController: NSPageController, context: Context) {
         // 画像パスの更新確認
         let imagePaths = controller.imagePaths
-
         if imagePaths != nsViewController.arrangedObjects as? [URL] {
             nsViewController.arrangedObjects = imagePaths
         }
-
         guard !imagePaths.isEmpty else { return }
-
         // 選択インデックスの更新
         if imagePaths.indices.contains(controller.selectedIndex) {
             nsViewController.selectedIndex = controller.selectedIndex
