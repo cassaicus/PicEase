@@ -23,7 +23,7 @@ struct ContentView: View {
     @State private var hideTask: DispatchWorkItem?
     
     
-    @State private var isFullScreenFit = false
+    //@State private var isFullScreenFit = true
     
     //表示内容の強制リフレッシュ用バインディング
     //@Binding var viewerID: UUID
@@ -50,7 +50,7 @@ struct ContentView: View {
                                 isThumbnailVisible = false
                             }
                         }
-
+                    
                     MouseTrackingView { location in
                         guard canToggleThumbnail else { return } // 切り替え制御
                         canToggleThumbnail = false
@@ -117,21 +117,16 @@ struct ContentView: View {
                         // 見栄えの良いカスタムメニューバー
                         
                         HStack(spacing: 16) {
-                            
-                            iconButton("arrow.up.left.and.down.right.and.arrow.up.right.and.down.left") {
-                                fitImageToWindow()
-                                //viewerID = UUID()
-                                NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
-                            }
-                            
-                            // 左側のボタン群
+                            // 戻るのボタン群
                             moveButton("chevron.left", offset: -50, controller: controller, size: .large)
                             moveButton("chevron.left", offset: -10, controller: controller, size: .medium)
                             moveButton("chevron.left", offset: -1, controller: controller, size: .small)
-                            
+                            // 進むのボタン群
                             moveButton("chevron.right", offset: +1, controller: controller, size: .small)
                             moveButton("chevron.right", offset: +10, controller: controller, size: .medium)
                             moveButton("chevron.right", offset: +50, controller: controller, size: .large)
+                            
+                            
                             
                             // 最後のボタンのすぐ右にインデックス表示
                             let currentIndex = controller.imagePaths.isEmpty ? 0 : controller.selectedIndex + 1
@@ -141,11 +136,23 @@ struct ContentView: View {
                                 .font(.system(size: 14, weight: .medium))
                             // ← ボタンと少し間隔をあける
                                 .padding(.leading, 4)
+                            
+                            iconButton("arrow.up.left.and.down.right.and.arrow.up.right.and.down.left") {
+                                fitImageToWindow()
+                                //viewerID = UUID()
+                                NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
+                            }
+                            
                         }
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity)
                         .background(Color.black)
+                        
+                        
+                        
+                        
+                        
                         
                         // サムネイルのスクロールビュー
                         ThumbnailScrollView(
@@ -214,43 +221,47 @@ struct ContentView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
+    
+    
     func fitImageToWindow() {
         guard let window = NSApp.mainWindow,
               let screen = window.screen else { return }
-        // モードを切り替える
-        isFullScreenFit.toggle()
-        if isFullScreenFit {
-            // メニューバーとDockを除いた利用可能領域を取得
-            let visibleFrame = screen.visibleFrame
-            // そのままフレームをセット
-            window.setFrame(visibleFrame, display: true, animate: true)
-        }else{
-            // 画像のアスペクト比に合わせてリサイズ
-            guard controller.imagePaths.indices.contains(controller.selectedIndex),
-                  let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex]) else {
-                return
-            }
-            let imgSize = image.size
-            guard let screen = NSApp.mainWindow?.screen else { return }
-            let screenRect = screen.visibleFrame
-            // 余白0
-            let padding: CGFloat = 0.0
-            let maxWidth = screenRect.width - padding * 2
-            let maxHeight = screenRect.height - padding * 2
-            let scale = min(maxWidth / imgSize.width, maxHeight / imgSize.height)
-            
-            let newWidth = imgSize.width * scale
-            let newHeight = imgSize.height * scale
-            
-            let newX = screenRect.origin.x + (screenRect.width - newWidth) / 2
-            let newY = screenRect.origin.y + (screenRect.height - newHeight) / 2
-            
-            if let win = NSApp.mainWindow {
-                win.setFrame(NSRect(x: newX, y: newY, width: newWidth, height: newHeight), display: true, animate: true)
-            }
+
+        // 画像読み込み＆サイズ取得
+        guard controller.imagePaths.indices.contains(controller.selectedIndex),
+              let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex]) else {
+            return
         }
+        let imgSize = image.size
+
+        // 利用可能領域／スケール
+        let visible = screen.visibleFrame
+        let scale = min(visible.width / imgSize.width,
+                        visible.height / imgSize.height)
+        let newWidth  = imgSize.width  * scale
+        let newHeight = imgSize.height * scale
+
+        // 現在位置を取得
+        let currentOrigin = window.frame.origin
+
+        // X のクランプ範囲を計算
+        let minX = visible.minX
+        let maxX = visible.maxX - newWidth
+
+        // currentOrigin.x を [minX…maxX] の範囲内に制限
+        let newX = min(max(currentOrigin.x, minX), maxX)
+
+        // Y 位置は0固定（必要なら同様にクランプ可）
+        let newY: CGFloat = 0.0
+
+        // フレーム適用
+        window.setFrame(
+            NSRect(x: newX, y: newY, width: newWidth, height: newHeight),
+            display: true,
+            animate: true
+        )
     }
-    
+
     // マウスの位置を監視するカスタムビュー（macOS用）
     struct MouseTrackingView: NSViewRepresentable {
         var onMove: (CGPoint) -> Void // マウス移動時に呼ばれるクロージャ
