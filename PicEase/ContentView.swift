@@ -233,7 +233,8 @@ struct ContentView: View {
             let imgSize = image.size
             guard let screen = NSApp.mainWindow?.screen else { return }
             let screenRect = screen.visibleFrame
-            let padding: CGFloat = 40 // 余白
+            // 余白0
+            let padding: CGFloat = 0.0
             let maxWidth = screenRect.width - padding * 2
             let maxHeight = screenRect.height - padding * 2
             let scale = min(maxWidth / imgSize.width, maxHeight / imgSize.height)
