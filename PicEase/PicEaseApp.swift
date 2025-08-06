@@ -8,7 +8,7 @@ struct PicEaseApp: App {
     @StateObject private var model = PageControllerWrapper()
     // BookmarkStore も同様に共有
     @StateObject private var bookmarkStore: BookmarkStore
-    
+
     // 初期化時に BookmarkStore に model を渡す
     init() {
         let model = PageControllerWrapper()
@@ -47,4 +47,7 @@ extension Notification.Name {
     static let thumbnailSelected = Notification.Name("thumbnailSelected")
     //メイン画像クリック
     static let mainImageClicked = Notification.Name("mainImageClicked")
+    //強制再描写
+    //static let forceRebuildLayout = Notification.Name("forceRebuildLayout")
+
 }

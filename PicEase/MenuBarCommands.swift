@@ -74,10 +74,8 @@ struct BookmarkCommands: Commands {
                     }
                 }
             }
-            
             // 区切り線
             Divider()
-            
             // ブックマークされた各フォルダをリスト表示
             ForEach(store.items) { bookmark in
                 Button(action: {
@@ -106,13 +104,10 @@ class BookmarkStore: ObservableObject {
 
     // 表示用のブックマーク配列（UIと同期）
     @Published var items: [Bookmark] = []
-
     // AppStorageを使って永続的に保存（UserDefaultsと同様だがSwiftUIに最適化）
     @AppStorage("bookmarkedFolders") private var bookmarkedFoldersData: String = "[]"
-
     // 画像モデル（現在の画像などを取得するため）
     private weak var model: PageControllerWrapper?
-
     // 初期化時にモデルを受け取り、保存済みブックマークを読み込む
     init(model: PageControllerWrapper) {
         self.model = model

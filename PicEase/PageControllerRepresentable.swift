@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+// MARK: PageControllerRepresentable
 // SwiftUI用にNSPageControllerをラップ
 struct PageControllerRepresentable: NSViewControllerRepresentable {
     @ObservedObject var controller: PageControllerWrapper

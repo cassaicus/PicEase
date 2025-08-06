@@ -17,13 +17,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     override func loadView() {
         self.view = NSView()
         self.view.wantsLayer = true
-        self.view.layer?.backgroundColor = NSColor.black.cgColor // 背景黒
+        // 背景黒
+        self.view.layer?.backgroundColor = NSColor.black.cgColor
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         delegate = self
-        transitionStyle = .horizontalStrip // 横スクロール
+        // 横スクロール
+        transitionStyle = .horizontalStrip
         
         // 通知を購読
         NotificationCenter.default.addObserver(
@@ -52,6 +54,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             selector: #selector(thumbnailSelected(_:)),
             name: .thumbnailSelected,
             object: nil)
+        
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(forceLayoutRebuild),
+//            name: .forceRebuildLayout,
+//            object: nil
+//        )
+//        
+        
     }
     
 
@@ -244,3 +255,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         pageController.completeTransition()
     }
 }
+//
+//extension ImagePageController {
+//    @objc func forceLayoutRebuild() {
+//        if let vc = self.selectedViewController as? ImageViewController {
+//            // 再レイアウトを要求
+//            vc.view.needsLayout = true
+//            vc.view.layoutSubtreeIfNeeded()
+//            // 必要なら描画も強制更新
+//            vc.view.layer?.setNeedsDisplay()
+//        }
+//    }
+//}

@@ -1,8 +1,10 @@
 import AppKit
 
 class ImageViewController: NSViewController {
-    private var imageView = NSImageView()
-    
+    var imageView = NSImageView()
+    private var currentURL: URL?
+
+
     // ズーム状態を管理
     private var isZoomed = false
     // ズーム倍率（1.0, 2.0, 4.0）
@@ -57,11 +59,21 @@ class ImageViewController: NSViewController {
     }
     
     
+//    func setImage(url: URL) {
+//        self.currentURL = url
+//        imageView.image = NSImage(contentsOf: url)
+//        imageView.imageScaling = .scaleProportionallyUpOrDown
+//    }
+
+    
 
     func setImage(url: URL) {
         imageView.image = NSImage(contentsOf: url)
         resetZoom()
     }
+    
+    
+    
     private func resetZoom() {
         isZoomed = false
         imageView.imageScaling = .scaleProportionallyUpOrDown
@@ -180,5 +192,22 @@ class ImageViewController: NSViewController {
 
         override var acceptsFirstResponder: Bool { true }
     }
+    
+    
+    
+    
+    
+//    func rebuildImageLayout() {
+//        imageView.imageScaling = .scaleProportionallyUpOrDown
+//        view.needsLayout = true
+//        view.layoutSubtreeIfNeeded()
+//    }
+
+//    func reloadImage() {
+//        guard let url = currentURL else { return }
+//        imageView.image = NSImage(contentsOf: url)
+//        imageView.imageScaling = .scaleProportionallyUpOrDown
+//        view.layoutSubtreeIfNeeded()
+//    }
 
 }
