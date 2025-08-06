@@ -148,9 +148,12 @@ struct ContentView: View {
                             currentIndex: $controller.selectedIndex,
                             isThumbnailVisible: $isThumbnailVisible
                         )
-                        .frame(height: 100) // 高さを100ptに固定
-                        .background(Color.black.opacity(0.8)) // 背景色
-                        .transition(.move(edge: .bottom).combined(with: .opacity)) // アニメーション付き表示
+                        // 高さを100ptに固定
+                        .frame(height: 100)
+                        // 背景色
+                        .background(Color.black.opacity(0.8))
+                        // アニメーション付き表示
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
             }
