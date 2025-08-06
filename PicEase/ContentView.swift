@@ -34,8 +34,8 @@ struct ContentView: View {
                         .onReceive(NotificationCenter.default.publisher(for: .mainImageClicked)) { _ in
                             withAnimation {
                                 if isThumbnailVisible {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                        //0.35後にrefreshCurrentPageを呼び出し再描写
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                        //0.5後にrefreshCurrentPageを呼び出し再描写
                                         NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                                     }
                                 }
@@ -133,7 +133,7 @@ struct ContentView: View {
                                 //ウィンドウサイズを画像にフィットするように変更
                                 fitImageToWindow()
                                 //refreshCurrentPageを呼び出し再描写
-                                NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
+                                //NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                             }
                             
                         }
@@ -163,10 +163,8 @@ struct ContentView: View {
                 resizeTask?.cancel()
                 // 新しいタスクを作成
                 let task = DispatchWorkItem {
-                    NotificationCenter.default.post(
-                        name: .refreshCurrentPage,
-                        object: nil
-                    )
+                    //refreshCurrentPageを呼び出し再描写
+                    NotificationCenter.default.post(name: .refreshCurrentPage,object: nil)
                 }
                 resizeTask = task
                 // 0.35秒後にタスクを実行

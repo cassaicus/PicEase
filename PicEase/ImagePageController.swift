@@ -105,7 +105,6 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                         alert.runModal()
                         return
                     }
-                    
                     self.wrapper.setImages(images)
                 }
             }
@@ -131,9 +130,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         if panel.runModal() == .OK, let selectedURL = panel.url {
             DispatchQueue.main.async {
                 // wrapper.setImages が [URL] を受け取る場合は配列に包む
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    self.wrapper.setImages([selectedURL])
-                }
+                self.wrapper.setImages([selectedURL])
             }
         }
     }
@@ -292,7 +289,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         let count = arrangedObjects.count
         let idx = selectedIndex
         
-        if count > 1 {
+        if count == 1 {
+            let url = self.wrapper.imagePaths
+            let dummyURL = URL(fileURLWithPath: "/dev/null")
+            self.wrapper.setImages([dummyURL])
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                self.wrapper.setImages(url)
+            }
+            return
+        } else if count > 1 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.selectedIndex = idx == 0 ? 1 : 0
                 self.selectedIndex = idx
@@ -302,21 +307,3 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
 }
-
-
-//self.arrangedObjects = self.arrangedObjects
-
-//self.wrapper.forceReload()
-
-
-//        if idx + 1 < count {
-//            selectedIndex = idx + 1
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                self.selectedIndex = idx
-//            }
-//        } else if idx > 0 {
-//            selectedIndex = idx - 1
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                self.selectedIndex = idx
-//            }
-//        }
