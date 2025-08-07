@@ -1,41 +1,48 @@
-
 import SwiftUI
 
-//  ボタンサイズの種類（共通定義として最上部に）
-enum ButtonSize {
-    case small
-    case medium
-    case large
-}
-
-//  メインビュー
+/// アプリケーションのメインウィンドウのコンテンツを定義する、中心的なSwiftUIビューです。
 struct ContentView: View {
-    // ページコントローラの管理
+
+    // MARK: - State Properties
+
+    /// `NSPageController`のデータソースと状態を管理する共有オブジェクト。
+    /// `@StateObject`としてここでインスタンス化され、このビューとその子ビューのライフサイクルにわたって維持されます。
     @StateObject private var controller = PageControllerWrapper()
-    // サムネイル表示フラグ
+
+    /// サムネイルバーとコントロールバーの表示状態を管理するフラグ。
     @State private var isThumbnailVisible = true
-    // サムネイル切り替え制御用フラグ
+
+    /// マウスホバーによる表示/非表示の切り替えが短時間に連続して発生するのを防ぐためのフラグ。
     @State private var canToggleThumbnail = true
-    // 遅延で非表示にする処理
+
+    /// サムネイルバーを非表示にするための遅延実行タスク。
+    /// マウスが領域外に移動した際にセットされ、一定時間後に実行されます。
     @State private var hideTask: DispatchWorkItem?
-    //リザイズのwindowSize
-    @State private var windowSize: CGSize = .zero
-    //リサイズタスク
+
+    /// ウィンドウサイズが変更されたときに再描画を遅延実行するためのタスク。
     @State private var resizeTask: DispatchWorkItem?
     
+    // MARK: - Body
+
     var body: some View {
+        // `GeometryReader` を使用して、親ビュー（この場合はウィンドウ全体）のサイズと座標系を取得します。
         GeometryReader { geometry in
-            // 縦方向に整列（隙間なし）
+            // 垂直方向にビューを配置するVStack。`spacing: 0`でビュー間の隙間をなくします。
             VStack(spacing: 0) {
+                // ZStackを使用して、画像ビューと他のUI要素（マウストラッキング、オーバーレイ）を重ねて表示します。
                 ZStack {
-                    // ページ表示領域（画像のビュー）
+                    // AppKitの`NSPageController`をSwiftUIで表示するためのラッパービュー。
                     PageControllerRepresentable(controller: controller)
+                        // 安全領域（ノッチなど）を無視して全画面に表示。
                         .edgesIgnoringSafeArea(.all)
+                        // `.mainImageClicked`通知を受信したときの処理。
                         .onReceive(NotificationCenter.default.publisher(for: .mainImageClicked)) { _ in
+                            // アニメーション付きでサムネイルバーを非表示にする。
                             withAnimation {
+                                // もしサムネイルが表示されていたら、1秒後に再描画を要求。
+                                // これは、サムネイルバーが消えた後に画像の表示が崩れる問題への対策。
                                 if isThumbnailVisible {
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                        //0.5後にrefreshCurrentPageを呼び出し再描写
                                         NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                                     }
                                 }
@@ -43,104 +50,23 @@ struct ContentView: View {
                             }
                         }
                     
+                    // マウスカーソルの位置を追跡するための透明なオーバーレイビュー。
                     MouseTrackingView { location in
-                        // 切り替え制御
-                        guard canToggleThumbnail else { return }
-                        canToggleThumbnail = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            canToggleThumbnail = true
-                        }
-                        // マウスが上端から150pt以内なら表示
-                        let threshold: CGFloat = 150
-                        if location.y <= threshold {
-                            withAnimation {
-                                isThumbnailVisible = true
-                            }
-                            hideTask?.cancel()
-                        } else {
-                            let task = DispatchWorkItem {
-                                withAnimation {
-                                    isThumbnailVisible = false
-                                }
-                            }
-                            hideTask?.cancel()
-                            hideTask = task
-                            //マウスカーソルが反れて２秒後に動く
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
-                        }
+                        handleMouseMovement(at: location)
                     }
                     
-                    //  フォルダが未選択の時に中央に表示する「Open Folder」ボタン
+                    // 表示する画像がない場合に、「Open Folder」ボタンのオーバーレイを表示。
                     if controller.imagePaths.isEmpty {
-                        ZStack {
-                            // 背景：薄黒（画像が透ける）
-                            Color.black.opacity(0.8)
-                            // Open Folderボタン
-                            Button(action: {
-                                // フォルダ選択の通知を送信
-                                NotificationCenter.default.post(name: .openFolder, object: nil)
-                            }) {
-                                // ボタンのラベル
-                                Text("Open Folder")
-                                // 左右の余白
-                                    .padding(.horizontal, 24)
-                                // 上下の余白
-                                    .padding(.vertical, 12)
-                                // 半透明の白背景
-                                    .background(Color.white.opacity(0.1))
-                                // 文字色を白に
-                                    .foregroundColor(.white)
-                                // ボタン角を丸く
-                                    .cornerRadius(12)
-                            }
-                            // macOSのデフォルト枠を消す
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        // フルサイズに拡張
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        // SafeArea を無視して重ねる
-                        .edgesIgnoringSafeArea(.all)
+                        OpenFolderOverlayView()
                     }
                 }
                 
-                // サムネイルとその上部メニュー
+                // サムネイルバーとコントロールバーの表示/非表示を切り替え。
                 if isThumbnailVisible {
+                    // 垂直方向にコントロールバーとサムネイルビューを配置。
                     VStack(spacing: 0) {
-                        // メニュー部分（ナビゲーションボタンなど）
-                        // 見栄えの良いカスタムメニューバー
-                        
-                        HStack(spacing: 16) {
-                            // 戻るのボタン群
-                            moveButton("chevron.left", offset: -50, controller: controller, size: .large)
-                            moveButton("chevron.left", offset: -10, controller: controller, size: .medium)
-                            moveButton("chevron.left", offset: -1, controller: controller, size: .small)
-                            // 進むのボタン群
-                            moveButton("chevron.right", offset: +1, controller: controller, size: .small)
-                            moveButton("chevron.right", offset: +10, controller: controller, size: .medium)
-                            moveButton("chevron.right", offset: +50, controller: controller, size: .large)
-                            
-                            // 最後のボタンのすぐ右にインデックス表示
-                            let currentIndex = controller.imagePaths.isEmpty ? 0 : controller.selectedIndex + 1
-                            let totalCount = controller.imagePaths.count
-                            Text("\(currentIndex) / \(totalCount)")
-                                .foregroundColor(.white)
-                                .font(.system(size: 14, weight: .medium))
-                            // ボタンと少し間隔をあける
-                                .padding(.leading, 4)
-                            
-                            //fitImageボタン
-                            iconButton("arrow.up.left.and.down.right.and.arrow.up.right.and.down.left") {
-                                //ウィンドウサイズを画像にフィットするように変更
-                                fitImageToWindow()
-                                //refreshCurrentPageを呼び出し再描写
-                                //NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
-                            }
-                            
-                        }
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 12)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.black)
+                        // ナビゲーションコントロールバー
+                        ControlBarView(controller: controller, fitImageAction: fitImageToWindow)
                         
                         // サムネイルのスクロールビュー
                         ThumbnailScrollView(
@@ -148,176 +74,174 @@ struct ContentView: View {
                             currentIndex: $controller.selectedIndex,
                             isThumbnailVisible: $isThumbnailVisible
                         )
-                        // 高さを100ptに固定
-                        .frame(height: 100)
-                        // 背景色
-                        .background(Color.black.opacity(0.8))
-                        // アニメーション付き表示
+                        .frame(height: 100) // 高さを100ポイントに固定
+                        .background(Color.black.opacity(0.8)) // 半透明の黒い背景
+                        // 下からスライドイン/アウトするアニメーション効果。
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
             }
-//            .onAppear {
-//                windowSize = geometry.size
-//            }
+            // ウィンドウのサイズ変更を監視します。
             .onChange(of: geometry.size) {
-                //ウィンドウのリサイズをキャッチ
-                // 既存タスクをキャンセル
-                resizeTask?.cancel()
-                // 新しいタスクを作成
+                // ウィンドウリサイズが頻繁に発生するため、`DispatchWorkItem`で処理を遅延させ、最後の変更後にのみ実行（デバウンス）。
+                resizeTask?.cancel() // 以前のタスクがあればキャンセル
+
                 let task = DispatchWorkItem {
-                    //refreshCurrentPageを呼び出し再描写
-                    NotificationCenter.default.post(name: .refreshCurrentPage,object: nil)
+                    // `NSPageController`に現在のページを再描画するよう通知
+                    NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                 }
                 resizeTask = task
-                // 0.35秒後にタスクを実行
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + 0.35,
-                    execute: task
-                )
+
+                // 0.35秒の遅延後にタスクを実行
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: task)
             }
         }
     }
     
-    //  サムネイルをスクロールさせる関数（未使用でも今後のために残す）
-    func scrollThumbnail(by offset: Int) {
-        let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-        controller.selectedIndex = newIndex
-    }
+    // MARK: - UI Logic Methods
     
-    /// 丸い透明ボタンを作る再利用可能なビュー
-    @ViewBuilder
-    func iconButton(_ systemName: String, isEmphasized: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: isEmphasized ? 22 : 16, weight: .medium))
-                .frame(width: 36, height: 36)
-            // 薄い白の丸背景
-                .background(Color.white.opacity(0.15))
-                .clipShape(Circle())
-            // アイコンは白
-                .foregroundColor(.white)
+    /// マウスカーソルの動きを処理し、サムネイルバーの表示/非表示を制御します。
+    /// - Parameter location: マウスカーソルの現在位置。
+    private func handleMouseMovement(at location: CGPoint) {
+        // 短時間の連続トグルを防ぐ
+        guard canToggleThumbnail else { return }
+        canToggleThumbnail = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { // 0.2秒のクールダウン
+            canToggleThumbnail = true
         }
-        // macOSの枠線を除去
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    @ViewBuilder
-    func moveButton(_ systemName: String, offset: Int, controller: PageControllerWrapper, size: ButtonSize = .medium) -> some View {
-        // サイズごとの定数を switch で取得
-        let (buttonSize, iconSize): (CGFloat, CGFloat) = {
-            switch size {
-            case .small:
-                return (28, 14)
-            case .medium:
-                return (32, 15)
-            case .large:
-                return (35, 16)
+
+        // マウスカーソルが画面上部から150ポイント以内の領域にあるかチェック
+        let threshold: CGFloat = 150
+        if location.y <= threshold {
+            // 領域内にある場合：
+            // アニメーション付きでサムネイルバーを表示
+            withAnimation {
+                isThumbnailVisible = true
             }
-        }()
-        Button(action: {
-            let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-            controller.selectedIndex = newIndex
-        }) {
-            Image(systemName: systemName)
-                .font(.system(size: iconSize, weight: .medium))
-                .frame(width: buttonSize, height: buttonSize)
-                .background(Color.white.opacity(0.15))
-                .clipShape(Circle())
-                .foregroundColor(.white)
+            // 既存の非表示タスクがあればキャンセル（非表示にさせない）
+            hideTask?.cancel()
+        } else {
+            // 領域外にある場合：
+            // 新しい非表示タスクを作成
+            let task = DispatchWorkItem {
+                withAnimation {
+                    isThumbnailVisible = false
+                }
+            }
+            hideTask?.cancel() // 以前のタスクをキャンセル
+            hideTask = task
+            // マウスが領域外に出てから2秒後にタスクを実行
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
         }
-        .buttonStyle(PlainButtonStyle())
     }
     
-    
+    /// 現在表示されている画像をウィンドウサイズにフィットさせます。
     func fitImageToWindow() {
-        guard let window = NSApp.mainWindow else { return }
-        guard
-            controller.imagePaths.indices.contains(controller.selectedIndex),
-            let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex])
+        // 現在のメインウィンドウと表示中の画像を取得
+        guard let window = NSApp.mainWindow,
+              controller.imagePaths.indices.contains(controller.selectedIndex),
+              let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex])
         else { return }
 
-        let imgSize = image.size
+        let imageSize = image.size
+        // ウィンドウが現在表示されているスクリーンの可視領域（メニューバーやDockを除く）を取得
+        guard let screenVisibleFrame = window.screen?.visibleFrame else { return }
 
-        // 全スクリーンを取得
-        let screens = NSScreen.screens
-        guard !screens.isEmpty else { return }
+        // 画像を可視領域に収めるためのスケーリング比率を計算
+        let scale = min(screenVisibleFrame.width / imageSize.width,
+                        screenVisibleFrame.height / imageSize.height)
 
-        // 上下スクリーンを特定
-        let bottomScreen = screens.min(by: { $0.frame.minY < $1.frame.minY })!
-        let topScreen    = screens.max(by: { $0.frame.minY < $1.frame.minY })!
+        // 新しいウィンドウサイズを計算
+        let newWidth = imageSize.width * scale
+        let newHeight = imageSize.height * scale
 
-        // ウィンドウの属するスクリーン
-        let currentScreen = window.screen ?? bottomScreen
+        // 新しいウィンドウの原点（左下の座標）を計算
+        // X座標：現在のウィンドウの中心が、新しいサイズの中心になるように設定
+        let currentFrame = window.frame
+        let newX = currentFrame.origin.x + (currentFrame.width - newWidth) / 2
+        // Y座標：可視領域の下端に合わせる
+        let newY = screenVisibleFrame.minY
 
-        // 対象スクリーンの「使える領域」を取得
-        let targetVisible = currentScreen.visibleFrame
+        // 新しいフレーム（位置とサイズ）を作成
+        let newFrame = NSRect(x: newX, y: newY, width: newWidth, height: newHeight)
 
-        // スケール計算
-        let scale = min(targetVisible.width  / imgSize.width,
-                        targetVisible.height / imgSize.height)
-        let newWidth  = imgSize.width  * scale
-        let newHeight = imgSize.height * scale
-
-        // X は既存ロジックと同じくクランプ
-        let currentOrigin = window.frame.origin
-        let minX = targetVisible.minX
-        let maxX = targetVisible.maxX - newWidth
-        let newX = min(max(currentOrigin.x, minX), maxX)
-
-        // Y の分岐：各スクリーンの visibleFrame.minY を使う
-        let newY: CGFloat
-        if currentScreen == topScreen {
-            newY = topScreen.visibleFrame.minY
-        } else {
-            newY = bottomScreen.visibleFrame.minY
-        }
-
-        // フレーム適用
-        window.setFrame(
-            NSRect(x: newX, y: newY, width: newWidth, height: newHeight),
-            display: true,
-            animate: true
-        )
+        // ウィンドウのフレームをアニメーション付きで更新
+        window.setFrame(newFrame, display: true, animate: true)
     }
     
-    // マウスの位置を監視するカスタムビュー（macOS用）
-    struct MouseTrackingView: NSViewRepresentable {
-        var onMove: (CGPoint) -> Void // マウス移動時に呼ばれるクロージャ
-        
-        func makeNSView(context: Context) -> NSView {
-            let trackingView = TrackingNSView()
-            trackingView.onMove = onMove
-            return trackingView
+    // MARK: - Child Views
+
+    /// 画像が読み込まれていないときに表示されるオーバーレイビュー。
+    struct OpenFolderOverlayView: View {
+        var body: some View {
+            ZStack {
+                // 半透明の黒い背景
+                Color.black.opacity(0.8)
+
+                // 「フォルダを開く」ボタン
+                Button(action: {
+                    // `.openFolder`通知を送信して、`ImagePageController`にフォルダ選択パネルを開かせる
+                    NotificationCenter.default.post(name: .openFolder, object: nil)
+                }) {
+                    Text("Open Folder")
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.white.opacity(0.1))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .buttonStyle(PlainButtonStyle()) // 標準のボタンスタイルを無効化
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .edgesIgnoringSafeArea(.all)
         }
-        
-        // 状態更新は不要
+    }
+
+    /// マウスカーソルの位置を継続的に追跡するための`NSViewRepresentable`ラッパー。
+    struct MouseTrackingView: NSViewRepresentable {
+        var onMove: (CGPoint) -> Void // マウスが移動したときに呼び出されるコールバック
+
+        func makeNSView(context: Context) -> NSView {
+            let view = TrackingNSView()
+            view.onMove = onMove
+            return view
+        }
+
         func updateNSView(_ nsView: NSView, context: Context) {}
-        
+
+        /// マウストラッキング機能を実装したカスタム`NSView`。
         class TrackingNSView: NSView {
-            // 移動イベント用のクロージャ
             var onMove: ((CGPoint) -> Void)?
-            
+
+            // `updateTrackingAreas`は、ビューのサイズや位置が変わったときに呼び出されるため、
+            // ここでトラッキングエリアを再設定するのが最も確実です。
             override func updateTrackingAreas() {
                 super.updateTrackingAreas()
-                // 既存エリアを削除
+                // 既存のトラッキングエリアをすべて削除して重複を防ぐ
                 trackingAreas.forEach(removeTrackingArea)
+
+                // 新しいトラッキングエリアを作成
                 let area = NSTrackingArea(
-                    rect: bounds,
-                    options: [.mouseMoved, .activeInKeyWindow, .inVisibleRect],
-                    owner: self, userInfo: nil
+                    rect: bounds, // ビュー全体を追跡範囲とする
+                    options: [
+                        .mouseMoved,         // マウス移動イベントを補足
+                        .activeInKeyWindow,  // アプリがアクティブなときのみ追跡
+                        .inVisibleRect       // ビューの可視部分のみ追跡
+                    ],
+                    owner: self,
+                    userInfo: nil
                 )
-                // 新しいトラッキングエリアを追加
                 addTrackingArea(area)
             }
-            
+
+            // マウスが移動したときに呼び出される
             override func mouseMoved(with event: NSEvent) {
-                // マウス座標を通知
+                // マウスのウィンドウ座標をビューのローカル座標に変換してコールバックを呼び出し
                 onMove?(convert(event.locationInWindow, from: nil))
             }
             
+            // このビューがクリックイベントを補足しないように`nil`を返す（イベントを下のビューに透過させる）。
             override func hitTest(_ point: NSPoint) -> NSView? {
-                // クリックイベントを透過
                 return nil
             }
         }
