@@ -231,7 +231,9 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     /// 指定された識別子に対応するビューコントローラをインスタンス化して返します。
     func pageController(_ pageController: NSPageController, viewControllerForIdentifier identifier: String) -> NSViewController {
         // 新しいImageViewControllerを生成
-        return ImageViewController()
+        let vc = ImageViewController()
+        vc.wrapper = self.wrapper
+        return vc
     }
     
     /// ビューコントローラが画面に表示される直前に呼び出されます。ここでビューコントローラにデータを渡します。
