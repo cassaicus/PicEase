@@ -1,28 +1,29 @@
+
 import SwiftUI
 import ImageIO
 
 /// 画像のサムネイルを水平方向にスクロール表示するSwiftUIビューです。
 struct ThumbnailScrollView: View {
-
+    
     // MARK: - Properties
-
+    
     /// 表示するすべての画像のURLリスト。親ビューから提供されます。
     let imageURLs: [URL]
-
+    
     /// 現在選択されている画像のインデックス。親ビュー（ContentView）と双方向にバインディングされます。
     /// このビューでサムネイルがタップされると、この値が更新され、親ビューに即座に反映されます。
     @Binding var currentIndex: Int
-
+    
     /// サムネイルバー全体の表示状態。親ビューとバインディングされています。
     /// このビューが表示されたときに、現在選択中のサムネイルまでスクロールするために使用します。
     @Binding var isThumbnailVisible: Bool
-
+    
     /// 非同期で読み込まれたサムネイル画像をキャッシュするためのディクショナリ。
     /// `[URL: NSImage]` の形式で、一度読み込んだ画像をメモリに保持し、再読み込みを防ぎます。
     @State private var thumbnails: [URL: NSImage] = [:]
     
     // MARK: - Body
-
+    
     var body: some View {
         // `ScrollViewReader` を使用して、特定のビュー（この場合はサムネイル）へプログラム的にスクロールできるようにします。
         ScrollViewReader { scrollProxy in
@@ -34,7 +35,7 @@ struct ThumbnailScrollView: View {
                     ForEach(Array(imageURLs.enumerated()), id: \.offset) { index, url in
                         // 現在のサムネイルが選択状態にあるかどうかを判断
                         let isSelected = index == currentIndex
-
+                        
                         // サムネイル画像を表示するZStack
                         ZStack {
                             // `thumbnails`ディクショナリに画像がキャッシュされていれば表示
@@ -86,7 +87,7 @@ struct ThumbnailScrollView: View {
     }
     
     // MARK: - Thumbnail Loading
-
+    
     /// 指定されたURLの画像を非同期で読み込み、サムネイルを生成します。
     /// - Parameter url: サムネイルを生成する元の画像のURL。
     private func loadThumbnailAsync(for url: URL) {
@@ -114,18 +115,9 @@ struct ThumbnailScrollView: View {
             
             // オプションを使ってサムネイル画像を生成
             if let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
-                // NSBitmapImageRepを作成し、ピクセル単位のサイズを明示的に扱います。
-                // これにより、画像のピクセル密度が正しく保持されます。
-                let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
-
-                // NSImageをポイント単位の論理サイズで初期化します。
-                let image = NSImage(size: targetSize)
-
-                // 作成したNSImageに、ピクセルデータを持つBitmapRepを追加します。
-                // この結果、80x80ポイントのNSImageが、実際には160x160ピクセルなどの
-                // 高解像度のデータを持つことになり、Retinaディスプレイで鮮明に表示されます。
-                image.addRepresentation(bitmapRep)
-
+                // 生成したCGImageをNSImageに変換。サイズも指定します。
+                let image = NSImage(cgImage: cgImage, size: targetSize)
+                
                 // UIの更新はメインスレッドで行う必要があるため、メインスレッドにディスパッチ
                 DispatchQueue.main.async {
                     // 生成した画像をキャッシュ用のディクショナリに保存
