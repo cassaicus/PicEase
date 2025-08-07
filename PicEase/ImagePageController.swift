@@ -155,7 +155,6 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                         includingPropertiesForKeys: nil,
                         options: [.skipsHiddenFiles]
                     )
-                    
                     let imagesURL = items?.filter {
                         ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
                             .contains($0.pathExtension.lowercased())
@@ -170,73 +169,15 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
                     }
                 }
             }else{
-                
-                // notification.object が URL でなければ早期リターン
-                //guard let url = urls.first else { return }
-
-                // 画像拡張子のチェック
-//                let ext = url.pathExtension.lowercased()
-//                guard ["jpg", "jpeg", "png", "gif", "bmp", "webp"].contains(ext) else { return }
-
-                
                 let imagesURL = urls.filter {
                     ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
                         .contains($0.pathExtension.lowercased())
                 }.sorted {
                     $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
                 }
-                
-                
                 DispatchQueue.main.async {
                     self.wrapper.setImages(imagesURL)
                 }
-                
-                
-//                // URL 配列を作ってソート
-//                let imagesURL = [url]
-//                    .sorted {
-//                        $0.lastPathComponent
-//                          .localizedStandardCompare($1.lastPathComponent) == .orderedAscending
-//                    }
-
-
-                
-                
-                
-//                let url = notification.object as? URL
-//                let urls = [url]
-//                let imagesURL = urls.filter {
-//                    ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
-//                        .contains($0?.pathExtension.lowercased())
-//                }.sorted {
-//                    $0?.lastPathComponent.localizedStandardCompare($1!.lastPathComponent) == .orderedAscending
-//                } ?? []
-//                                
-//                DispatchQueue.main.async {
-//
-//
-//                    self.wrapper.setImages(imagesURL)
-//
-//
-//                }
-//                
-//                
-//                
-//                
-//                        for url in urls {
-//                            if ["jpg", "jpeg", "png", "gif", "bmp", "webp"].contains(url.pathExtension.lowercased()) {
-//                                //単体画像として開く
-//                                self.wrapper.setImages([url])
-//                                
-//                            }
-//                        }
-                
-                
-                
-                
-                
-                //単体画像として開く
-                //self.wrapper.setImages([url])
             }
         }
     }
