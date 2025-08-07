@@ -113,8 +113,22 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     @objc private func handleOpenFolderFromBookmark(_ notification: Notification) {
         // 通知オブジェクトからURLを取得
         guard let url = notification.object as? URL else { return }
+        
+        //NSFileReadNoPermissionErrorエラー回避の為にダイアログからフォルダーを選択
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true // フォルダ選択を許可
+        panel.canChooseFiles = false // ファイル選択は不許可
+        panel.allowsMultipleSelection = false // 複数選択は不許可
+        panel.directoryURL = url //通知オブジェクトからのURLを指定
+        
+        // パネルが「OK」で閉じられ、URLが取得できた場合に処理を実行
+        if panel.runModal() == .OK, let url = panel.url {
+            loadImages(from: url)
+        }
+        
+        
         // 指定されたURL（フォルダ）から画像を読み込む
-        loadImages(from: url)
+        //loadImages(from: url)
     }
 
     /// サムネイル選択の通知を処理します。
