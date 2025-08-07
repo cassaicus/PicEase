@@ -24,6 +24,8 @@ class PageControllerWrapper: ObservableObject {
         }
     }
 
+    @Published var isThumbnailVisible: Bool = true
+
     /// 現在選択されている画像の、`imagePaths`配列内でのインデックス。
     /// こちらも`@Published`が付いているため、インデックスの変更はUIに即座に反映されます。
     /// （例：サムネイルビューのハイライト、ページコントローラの表示ページなど）
