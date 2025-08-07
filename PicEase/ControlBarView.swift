@@ -77,8 +77,11 @@ struct ControlBarView: View {
         Button(action: {
             // 新しいインデックスを計算。0未満や総数以上にならないようにクランプ（範囲内に収める）。
             let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-            // 計算した新しいインデックスをコントローラに設定
-            controller.selectedIndex = newIndex
+            // 状態の更新をメインスレッドで非同期に実行し、UI更新の競合を防ぐ
+            DispatchQueue.main.async {
+                // 計算した新しいインデックスをコントローラに設定
+                controller.selectedIndex = newIndex
+            }
         }) {
             // ボタンの見た目（アイコン）
             Image(systemName: systemName)
