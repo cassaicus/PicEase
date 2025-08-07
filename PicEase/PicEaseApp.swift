@@ -1,33 +1,59 @@
-
 import SwiftUI
 
+/// アプリケーションのエントリーポイント（起点）を定義します。
+/// `@main`属性により、この構造体がアプリの起動時に実行されることを示します。
 @main
 struct PicEaseApp: App {
+
+    // MARK: - Properties
+
+    /// `AppDelegate`をSwiftUIアプリケーションのライフサイクルに組み込むためのプロパティラッパー。
+    /// これにより、従来のAppKitのデリゲートメソッド（例：アプリ起動時の処理）を利用できます。
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    // ImageViewerModel をアプリ全体で共有
-    @StateObject private var model = PageControllerWrapper()
-    // BookmarkStore も同様に共有
+
+    /// 画像ブラウジングの状態（画像リスト、選択インデックス）を管理するデータモデル。
+    /// `@StateObject`として宣言され、アプリのライフサイクル全体でインスタンスが維持されます。
+    @StateObject private var model: PageControllerWrapper
+
+    /// ブックマーク機能を管理するデータストア。
+    /// こちらも`@StateObject`として宣言され、アプリ全体で共有されます。
     @StateObject private var bookmarkStore: BookmarkStore
 
-    // 初期化時に BookmarkStore に model を渡す
+    // MARK: - Initialization
+
+    /// アプリの初期化処理。
+    /// `body`が評価される前に一度だけ呼び出されます。
+    /// ここで、依存関係を持つオブジェクト（`BookmarkStore`が`PageControllerWrapper`に依存）を正しく初期化します。
     init() {
-        let model = PageControllerWrapper()
-        _model = StateObject(wrappedValue: model)
-        _bookmarkStore = StateObject(wrappedValue: BookmarkStore(model: model))
+        // `PageControllerWrapper`のインスタンスをまず作成します。
+        let initialModel = PageControllerWrapper()
+        // 作成したインスタンスを使用して`@StateObject`プロパティを初期化します。
+        _model = StateObject(wrappedValue: initialModel)
+        // `BookmarkStore`の初期化時に、依存する`model`のインスタンスを渡します。
+        _bookmarkStore = StateObject(wrappedValue: BookmarkStore(model: initialModel))
     }
 
+    // MARK: - Body
+
+    /// アプリケーションのUI階層（シーン）を定義します。
     var body: some Scene {
+        // メインウィンドウを定義します。
         Window("PicEase", id: "main") {
+            // ウィンドウのコンテンツとして`ContentView`を設定します。
             ContentView()
+                // `environmentObject`を使用して、`model`をビュー階層全体に供給します。
+                // これにより、階層内のどのビューからでも`model`にアクセスできます。
                 .environmentObject(model)
+                // 同様に`bookmarkStore`もビュー階層に供給します。
                 .environmentObject(bookmarkStore)
         }
+        // ウィンドウのタイトルバーを非表示にするスタイルを適用します。
         .windowStyle(HiddenTitleBarWindowStyle())
-        // Fileブックマーク機能を追加
+        // アプリケーションのメニューバーにカスタムコマンドを追加します。
         .commands {
-            // File メニュー定義
+            // ファイル関連の標準的なメニュー項目を定義します。
             FileCommands()
-            //bookmarkメニュー
+            // ブックマーク関連のカスタムメニュー項目を定義します。
             BookmarkCommands(
                 store: bookmarkStore,
                 model: model
@@ -36,20 +62,23 @@ struct PicEaseApp: App {
     }
 }
 
-extension Notification.Name {
-    //openFolder
-    static let openFolder = Notification.Name("openFolder")
-    //openFolder
-    static let openImage = Notification.Name("openImage")
-    //AppDelegateからファイルを開く
-    static let openFromExternal = Notification.Name("openFromExternal")
-    // Bookmarkフォルダーオープンの通知名
-    static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
-    // サムネイル選択の通知名
-    static let thumbnailSelected = Notification.Name("thumbnailSelected")
-    //メイン画像クリック
-    static let mainImageClicked = Notification.Name("mainImageClicked")
-    //強制再描写
-    static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
+// MARK: - Notification.Name Extension
 
+/// アプリケーション全体で使われるカスタム通知名を一元管理するための拡張です。
+/// `static let`で定義することで、タイプセーフで間違いの少ない通知の送受信が可能になります。
+extension Notification.Name {
+    /// フォルダ選択パネルを開くための通知。
+    static let openFolder = Notification.Name("openFolder")
+    /// 画像選択パネルを開くための通知。
+    static let openImage = Notification.Name("openImage")
+    /// Finderなど外部からファイルが開かれたことを示す通知。
+    static let openFromExternal = Notification.Name("openFromExternal")
+    /// ブックマークからフォルダを開くための通知。
+    static let openFolderFromBookmark = Notification.Name("openFolderFromBookmark")
+    /// サムネイルが選択されたことを`NSPageController`に伝えるための通知。
+    static let thumbnailSelected = Notification.Name("thumbnailSelected")
+    /// メイン画像がクリックされたことを`ContentView`に伝えるための通知。
+    static let mainImageClicked = Notification.Name("mainImageClicked")
+    /// 現在のビューの強制的な再描画を要求するための通知。
+    static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
 }
