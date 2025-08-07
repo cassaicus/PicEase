@@ -249,7 +249,11 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         // 新しく表示されたページのオブジェクト（URL）からインデックスを見つけ、共有データを更新
         if let url = object as? URL, let index = wrapper.imagePaths.firstIndex(of: url) {
             // UIの状態とデータの状態を同期させる
-            self.wrapper.selectedIndex = index
+            // ただし、インデックスが既に同じ場合は何もしないことで、
+            // SwiftUIからの変更がフィードバックループするのを防ぐ
+            if self.wrapper.selectedIndex != index {
+                self.wrapper.selectedIndex = index
+            }
         }
     }
     
