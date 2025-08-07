@@ -114,8 +114,17 @@ struct ThumbnailScrollView: View {
             
             // オプションを使ってサムネイル画像を生成
             if let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
-                // 生成したCGImageをNSImageに変換。サイズも指定します。
-                let image = NSImage(cgImage: cgImage, size: targetSize)
+                // NSBitmapImageRepを作成し、ピクセル単位のサイズを明示的に扱います。
+                // これにより、画像のピクセル密度が正しく保持されます。
+                let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
+
+                // NSImageをポイント単位の論理サイズで初期化します。
+                let image = NSImage(size: targetSize)
+
+                // 作成したNSImageに、ピクセルデータを持つBitmapRepを追加します。
+                // この結果、80x80ポイントのNSImageが、実際には160x160ピクセルなどの
+                // 高解像度のデータを持つことになり、Retinaディスプレイで鮮明に表示されます。
+                image.addRepresentation(bitmapRep)
 
                 // UIの更新はメインスレッドで行う必要があるため、メインスレッドにディスパッチ
                 DispatchQueue.main.async {
