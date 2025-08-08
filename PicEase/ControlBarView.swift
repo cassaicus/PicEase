@@ -45,6 +45,23 @@ struct ControlBarView: View {
             // 画像をウィンドウにフィットさせるボタン
             iconButton(systemName: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left", action: fitImageAction)
 
+            // MARK: Open in Finder Button
+            Button(action: {
+                if !controller.imagePaths.isEmpty {
+                    let currentURL = controller.imagePaths[controller.selectedIndex]
+                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
+                }
+            }) {
+                Image(systemName: "folder")
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(controller.imagePaths.isEmpty)
+
         }
         .padding(.vertical, 6)       // 上下のパディング
         .padding(.horizontal, 12)    // 左右のパディング
