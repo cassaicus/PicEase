@@ -81,4 +81,6 @@ extension Notification.Name {
     static let mainImageClicked = Notification.Name("mainImageClicked")
     /// 現在のビューの強制的な再描画を要求するための通知。
     static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
+    /// 画像の端でナビゲーションしようとしたときに画像を揺らすための通知。
+    static let shakeImage = Notification.Name("shakeImage")
 }

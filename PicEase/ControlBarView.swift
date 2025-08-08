@@ -108,10 +108,12 @@ struct ControlBarView: View {
 
         // ボタンの定義
         Button(action: {
-            // 新しいインデックスを計算。0未満や総数以上にならないようにクランプ（範囲内に収める）。
-            let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-            // 計算した新しいインデックスを通知で送信
-            NotificationCenter.default.post(name: .navigateToIndex, object: newIndex)
+            let desiredIndex = controller.selectedIndex + offset
+            if controller.imagePaths.indices.contains(desiredIndex) {
+                NotificationCenter.default.post(name: .navigateToIndex, object: desiredIndex)
+            } else {
+                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            }
         }) {
             // ボタンの見た目（アイコン）
             Image(systemName: systemName)

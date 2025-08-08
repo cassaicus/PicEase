@@ -282,9 +282,17 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         // `keyCode`に基づいて処理を分岐
         switch event.keyCode {
         case 124: // 右矢印キー
-            navigateForward(nil)
+            if selectedIndex < arrangedObjects.count - 1 {
+                navigateForward(nil)
+            } else {
+                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            }
         case 123: // 左矢印キー
-            navigateBack(nil)
+            if selectedIndex > 0 {
+                navigateBack(nil)
+            } else {
+                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            }
         default:
             // 他のキー入力はデフォルトの動作に任せる
             super.keyDown(with: event)

@@ -37,6 +37,11 @@ struct ContentView: View {
                                 controller.isThumbnailVisible = true
                             }
                         }
+                        .onReceive(NotificationCenter.default.publisher(for: .shakeImage)) { _ in
+                            withAnimation {
+                                imageShake += 1
+                            }
+                        }
                         .onReceive(NotificationCenter.default.publisher(for: .hideThumbnail)) { _ in
                             withAnimation {
                                 controller.isThumbnailVisible = false
