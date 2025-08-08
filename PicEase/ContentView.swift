@@ -13,6 +13,8 @@ struct ContentView: View {
     @State private var resizeTask: DispatchWorkItem?
     
     @State private var isHintIconVisible: Bool = false
+    @State private var isPreviousButtonVisible: Bool = false
+    @State private var isNextButtonVisible: Bool = false
 
     // MARK: - Body
 
@@ -62,6 +64,50 @@ struct ContentView: View {
                             .padding(.bottom, 20)
                         }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+
+                    // 左（戻る）ボタン
+                    if isPreviousButtonVisible {
+                        HStack {
+                            Button(action: {
+                                if controller.selectedIndex > 0 {
+                                    controller.selectedIndex -= 1
+                                }
+                            }) {
+                                Text("<")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.black.opacity(0.5))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.leading, 20)
+                            Spacer()
+                        }
+                        .transition(.opacity)
+                    }
+
+                    // 右（進む）ボタン
+                    if isNextButtonVisible {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                if controller.selectedIndex < controller.imagePaths.count - 1 {
+                                    controller.selectedIndex += 1
+                                }
+                            }) {
+                                Text(">")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.black.opacity(0.5))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.trailing, 20)
+                        }
+                        .transition(.opacity)
                     }
                 }
                 
@@ -168,19 +214,37 @@ struct ContentView: View {
 
     private func handleMouseMovement(at location: CGPoint, in size: CGSize) {
         if controller.isThumbnailVisible {
-            if isHintIconVisible {
+            if isHintIconVisible || isPreviousButtonVisible || isNextButtonVisible {
                 withAnimation {
                     isHintIconVisible = false
+                    isPreviousButtonVisible = false
+                    isNextButtonVisible = false
                 }
             }
             return
         }
 
-        let shouldBeVisible = location.y < size.height * 0.25
-
-        if isHintIconVisible != shouldBeVisible {
+        // マウスカーソルのY座標がビューの下部12%にあるかを判定
+        let shouldBeHintIconVisible = location.y > size.height * (1 - 0.12)
+        if isHintIconVisible != shouldBeHintIconVisible {
             withAnimation(.easeInOut(duration: 0.2)) {
-                isHintIconVisible = shouldBeVisible
+                isHintIconVisible = shouldBeHintIconVisible
+            }
+        }
+
+        // マウスカーソルのX座標が左側20%にあるかを判定
+        let shouldBePreviousButtonVisible = location.x < size.width * 0.2
+        if isPreviousButtonVisible != shouldBePreviousButtonVisible {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isPreviousButtonVisible = shouldBePreviousButtonVisible
+            }
+        }
+
+        // マウスカーソルのX座標が右側20%にあるかを判定
+        let shouldBeNextButtonVisible = location.x > size.width * (1 - 0.2)
+        if isNextButtonVisible != shouldBeNextButtonVisible {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isNextButtonVisible = shouldBeNextButtonVisible
             }
         }
     }
