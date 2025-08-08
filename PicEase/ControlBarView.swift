@@ -109,10 +109,17 @@ struct ControlBarView: View {
         // ボタンの定義
         Button(action: {
             let desiredIndex = controller.selectedIndex + offset
-            if controller.imagePaths.indices.contains(desiredIndex) {
-                NotificationCenter.default.post(name: .navigateToIndex, object: desiredIndex)
-            } else {
-                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            let clampedIndex = min(max(0, desiredIndex), controller.imagePaths.count - 1)
+
+            // 常にクランプされたインデックスに移動
+            NotificationCenter.default.post(name: .navigateToIndex, object: clampedIndex)
+
+            // もし目的のインデックスが範囲外だったら、移動後にシェイク
+            if !controller.imagePaths.indices.contains(desiredIndex) {
+                // 0.05秒の遅延で、ページ遷移のアニメーションと競合しないようにする
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    NotificationCenter.default.post(name: .shakeImage, object: nil)
+                }
             }
         }) {
             // ボタンの見た目（アイコン）
