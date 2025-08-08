@@ -12,6 +12,8 @@ struct ContentView: View {
     /// ウィンドウサイズが変更されたときに再描画を遅延実行するためのタスク。
     @State private var resizeTask: DispatchWorkItem?
     
+    @State private var isHintIconVisible: Bool = false
+
     // MARK: - Body
 
     var body: some View {
@@ -42,6 +44,24 @@ struct ContentView: View {
                     // 表示する画像がない場合に、「Open Folder」ボタンのオーバーレイを表示。
                     if controller.imagePaths.isEmpty {
                         OpenFolderOverlayView()
+                    }
+
+                    MouseTrackingView { location in
+                        handleMouseMovement(at: location, in: geometry.size)
+                    }
+
+                    if isHintIconVisible {
+                        VStack {
+                            Spacer()
+                            ThumbnailHintIconView {
+                                withAnimation {
+                                    isHintIconVisible = false
+                                    controller.isThumbnailVisible = true
+                                }
+                            }
+                            .padding(.bottom, 20)
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
                 
@@ -143,6 +163,75 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .edgesIgnoringSafeArea(.all)
+        }
+    }
+
+    private func handleMouseMovement(at location: CGPoint, in size: CGSize) {
+        if controller.isThumbnailVisible {
+            if isHintIconVisible {
+                withAnimation {
+                    isHintIconVisible = false
+                }
+            }
+            return
+        }
+
+        let shouldBeVisible = location.y < size.height * 0.25
+
+        if isHintIconVisible != shouldBeVisible {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHintIconVisible = shouldBeVisible
+            }
+        }
+    }
+}
+
+/// マウスカーソルの位置を継続的に追跡するための`NSViewRepresentable`ラッパー。
+struct MouseTrackingView: NSViewRepresentable {
+    var onMove: (CGPoint) -> Void // マウスが移動したときに呼び出されるコールバック
+
+    func makeNSView(context: Context) -> NSView {
+        let view = TrackingNSView()
+        view.onMove = onMove
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    /// マウストラッキング機能を実装したカスタム`NSView`。
+    class TrackingNSView: NSView {
+        var onMove: ((CGPoint) -> Void)?
+
+        // `updateTrackingAreas`は、ビューのサイズや位置が変わったときに呼び出されるため、
+        // ここでトラッキングエリアを再設定するのが最も確実です。
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            // 既存のトラッキングエリアをすべて削除して重複を防ぐ
+            trackingAreas.forEach(removeTrackingArea)
+
+            // 新しいトラッキングエリアを作成
+            let area = NSTrackingArea(
+                rect: bounds, // ビュー全体を追跡範囲とする
+                options: [
+                    .mouseMoved,         // マウス移動イベントを補足
+                    .activeInKeyWindow,  // アプリがアクティブなときのみ追跡
+                    .inVisibleRect       // ビューの可視部分のみ追跡
+                ],
+                owner: self,
+                userInfo: nil
+            )
+            addTrackingArea(area)
+        }
+
+        // マウスが移動したときに呼び出される
+        override func mouseMoved(with event: NSEvent) {
+            // マウスのウィンドウ座標をビューのローカル座標に変換してコールバックを呼び出し
+            onMove?(convert(event.locationInWindow, from: nil))
+        }
+
+        // このビューがクリックイベントを補足しないように`nil`を返す（イベントを下のビューに透過させる）。
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            return nil
         }
     }
 }

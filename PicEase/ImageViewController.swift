@@ -119,18 +119,8 @@ class ImageViewController: NSViewController {
 
     /// シングルクリックで呼び出され、UIの表示/非表示を切り替える通知を送信します。
     @objc func handleSingleClick(_ sender: NSClickGestureRecognizer) {
-        guard let wrapper = wrapper else { return }
-
-        let location = sender.location(in: view)
-        let viewHeight = view.bounds.height
-
-        if wrapper.isThumbnailVisible {
-            NotificationCenter.default.post(name: .hideThumbnail, object: nil)
-        } else {
-            if location.y < viewHeight * 0.25 {
-                NotificationCenter.default.post(name: .showThumbnail, object: nil)
-            }
-        }
+        guard let wrapper = wrapper, wrapper.isThumbnailVisible else { return }
+        NotificationCenter.default.post(name: .hideThumbnail, object: nil)
     }
     
     /// ダブルクリックで呼び出され、ズームレベルを循環的に変更します。
@@ -214,25 +204,12 @@ class ImageViewController: NSViewController {
         // ズームされていない場合はパン操作を無効化
         guard zoomScale > 1.0, let layer = imageView.layer else { return }
         
-        if !isDragging {
-            isDragging = true
-            NSCursor.closedHand.push()
-        }
-
         // 現在のレイヤー位置に移動量を加算
         let currentPosition = layer.position
         let newPosition = CGPoint(x: currentPosition.x + delta.x, y: currentPosition.y + delta.y)
         
         // レイヤーの位置を更新
         layer.position = newPosition
-
-        // ドラッグが終わったことを検出するために、少し遅れてisDraggingをリセットする
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if self.isDragging {
-                self.isDragging = false
-                NSCursor.pop()
-            }
-        }
     }
     
     /// マウスホイールやピンチ操作に応じて画像をズームします。
