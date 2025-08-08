@@ -70,10 +70,8 @@ struct ContentView: View {
                     if isPreviousButtonVisible {
                         HStack {
                             Button(action: {
-                                DispatchQueue.main.async {
-                                    if controller.selectedIndex > 0 {
-                                        controller.selectedIndex -= 1
-                                    }
+                                if controller.selectedIndex > 0 {
+                                    controller.selectedIndex -= 1
                                 }
                             }) {
                                 Text("<")
@@ -95,10 +93,8 @@ struct ContentView: View {
                         HStack {
                             Spacer()
                             Button(action: {
-                                DispatchQueue.main.async {
-                                    if controller.selectedIndex < controller.imagePaths.count - 1 {
-                                        controller.selectedIndex += 1
-                                    }
+                                if controller.selectedIndex < controller.imagePaths.count - 1 {
+                                    controller.selectedIndex += 1
                                 }
                             }) {
                                 Text(">")
