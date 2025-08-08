@@ -224,8 +224,8 @@ struct ContentView: View {
             return
         }
 
-        // マウスカーソルのY座標がビューの下部12%にあるかを判定
-        let shouldBeHintIconVisible = location.y > size.height * (1 - 0.12)
+        // マウスカーソルのY座標がビューの下部25%にあるかを判定
+        let shouldBeHintIconVisible = location.y < size.height * 0.25
         if isHintIconVisible != shouldBeHintIconVisible {
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHintIconVisible = shouldBeHintIconVisible
