@@ -60,7 +60,6 @@ struct ControlBarView: View {
                     .foregroundColor(.white)
             }
             .buttonStyle(PlainButtonStyle())
-            .disabled(controller.imagePaths.isEmpty)
 
             // MARK: Open Parent Directory Button
             Button(action: {
@@ -78,7 +77,6 @@ struct ControlBarView: View {
                     .foregroundColor(.white)
             }
             .buttonStyle(PlainButtonStyle())
-            .disabled(controller.imagePaths.isEmpty)
 
         }
         .padding(.vertical, 6)       // 上下のパディング
