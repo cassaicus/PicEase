@@ -62,6 +62,24 @@ struct ControlBarView: View {
             .buttonStyle(PlainButtonStyle())
             .disabled(controller.imagePaths.isEmpty)
 
+            // MARK: Open Parent Directory Button
+            Button(action: {
+                if !controller.imagePaths.isEmpty {
+                    let currentURL = controller.imagePaths[controller.selectedIndex]
+                    let parentURL = currentURL.deletingLastPathComponent().deletingLastPathComponent()
+                    NSWorkspace.shared.open(parentURL)
+                }
+            }) {
+                Image(systemName: "arrow.turn.up.left")
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(controller.imagePaths.isEmpty)
+
         }
         .padding(.vertical, 6)       // 上下のパディング
         .padding(.horizontal, 12)    // 左右のパディング
