@@ -16,6 +16,8 @@ class ImageViewController: NSViewController {
     /// 現在のズーム倍率。1.0が等倍。
     private var zoomScale: CGFloat = 1.0
     
+    private var isDragging = false
+
     // MARK: - Lifecycle Methods
 
     /// ビューコントローラのビューをロードまたは作成します。
@@ -39,6 +41,8 @@ class ImageViewController: NSViewController {
         // ジェスチャー認識とイベントハンドラを設定
         setupGestureRecognizers(in: containerView)
         setupEventHandlers(for: containerView)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(handleMouseMoved(_:)), name: .mouseMoved, object: nil)
     }
 
     // MARK: - Public Methods
@@ -113,14 +117,16 @@ class ImageViewController: NSViewController {
         containerView.onZoom = { [weak self] scaleDelta, location in
             self?.handleZoom(by: scaleDelta, at: location)
         }
+        containerView.onDragStateChanged = { [weak self] isDragging in
+            self?.isDragging = isDragging
+            self?.updateCursor()
+        }
     }
     
     // MARK: - Event Handlers & Actions
 
     /// シングルクリックで呼び出され、UIの表示/非表示を切り替える通知を送信します。
-    @objc func handleSingleClick(_ sender: NSClickGestureRecognizer) {
-        guard let wrapper = wrapper, wrapper.isThumbnailVisible else { return }
-        NotificationCenter.default.post(name: .hideThumbnail, object: nil)
+
     }
     
     /// ダブルクリックで呼び出され、ズームレベルを循環的に変更します。
@@ -204,12 +210,25 @@ class ImageViewController: NSViewController {
         // ズームされていない場合はパン操作を無効化
         guard zoomScale > 1.0, let layer = imageView.layer else { return }
         
+        if !isDragging {
+            isDragging = true
+            NSCursor.closedHand.push()
+        }
+
         // 現在のレイヤー位置に移動量を加算
         let currentPosition = layer.position
         let newPosition = CGPoint(x: currentPosition.x + delta.x, y: currentPosition.y + delta.y)
         
         // レイヤーの位置を更新
         layer.position = newPosition
+
+        // ドラッグが終わったことを検出するために、少し遅れてisDraggingをリセットする
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if self.isDragging {
+                self.isDragging = false
+                NSCursor.pop()
+            }
+        }
     }
     
     /// マウスホイールやピンチ操作に応じて画像をズームします。

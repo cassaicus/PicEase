@@ -76,42 +76,4 @@ struct ControlBarView: View {
         // ボタンの定義
         Button(action: {
             // 新しいインデックスを計算。0未満や総数以上にならないようにクランプ（範囲内に収める）。
-            let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-            // 計算した新しいインデックスを通知で送信
-            NotificationCenter.default.post(name: .navigateToIndex, object: newIndex)
-        }) {
-            // ボタンの見た目（アイコン）
-            Image(systemName: systemName)
-                .font(.system(size: iconSize, weight: .medium))
-                .frame(width: buttonSize, height: buttonSize)
-                .background(Color.white.opacity(0.15)) // 半透明の白い円形の背景
-                .clipShape(Circle()) // 円形にクリップ
-                .foregroundColor(.white) // アイコンの色を白に
-        }
-        .buttonStyle(PlainButtonStyle()) // macOS標準のボタン枠線を削除
-    }
 
-    ///汎用的なアイコンボタンを生成するプライベートなViewBuilder。
-    /// - Parameters:
-    ///   - systemName: ボタンに表示するSF Symbolの名前。
-    ///   - action: ボタンが押されたときに実行されるクロージャ。
-    @ViewBuilder
-    private func iconButton(systemName: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 16, weight: .medium))
-                .frame(width: 36, height: 36)
-                .background(Color.white.opacity(0.15))
-                .clipShape(Circle())
-                .foregroundColor(.white)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-/// ボタンのサイズを定義するための列挙型。
-enum ButtonSize {
-    case small
-    case medium
-    case large
-}

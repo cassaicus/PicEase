@@ -17,6 +17,8 @@ class ZoomableImageViewContainer: NSView {
     /// - Parameter delta: 前回の位置からの移動量（x, y）。
     var onPan: ((_ delta: NSPoint) -> Void)?
 
+    var onDragStateChanged: ((_ isDragging: Bool) -> Void)?
+
     // MARK: - Private Properties
 
     /// 現在、ビューがドラッグ中であるかを示すフラグ。
@@ -67,6 +69,7 @@ class ZoomableImageViewContainer: NSView {
     override func mouseDown(with event: NSEvent) {
         // ドラッグ中フラグを立てる
         isDragging = true
+        onDragStateChanged?(true)
         // 現在のマウス位置を保存
         lastDragLocation = convert(event.locationInWindow, from: nil)
     }
@@ -94,6 +97,7 @@ class ZoomableImageViewContainer: NSView {
     override func mouseUp(with event: NSEvent) {
         // ドラッグ中フラグを解除
         isDragging = false
+        onDragStateChanged?(false)
         // 前回の位置情報をクリア
         lastDragLocation = nil
     }
