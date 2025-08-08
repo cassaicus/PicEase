@@ -52,7 +52,7 @@ struct PicEaseApp: App {
         // アプリケーションのメニューバーにカスタムコマンドを追加します。
         .commands {
             // ファイル関連の標準的なメニュー項目を定義します。
-            FileCommands()
+            FileCommands(model: model)
             // ブックマーク関連のカスタムメニュー項目を定義します。
             BookmarkCommands(
                 store: bookmarkStore,
