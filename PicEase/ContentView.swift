@@ -16,8 +16,7 @@ struct ContentView: View {
     @State private var isPreviousButtonVisible: Bool = false
     @State private var isNextButtonVisible: Bool = false
 
-    @State private var previousButtonShake: CGFloat = 0
-    @State private var nextButtonShake: CGFloat = 0
+    @State private var imageShake: CGFloat = 0
 
     // MARK: - Body
 
@@ -30,6 +29,7 @@ struct ContentView: View {
                 ZStack {
                     // AppKitの`NSPageController`をSwiftUIで表示するためのラッパービュー。
                     PageControllerRepresentable(controller: controller)
+                        .modifier(ShakeEffect(animatableData: imageShake))
                         // 安全領域（ノッチなど）を無視して全画面に表示。
                         .edgesIgnoringSafeArea(.all)
                         .onReceive(NotificationCenter.default.publisher(for: .showThumbnail)) { _ in
@@ -77,7 +77,7 @@ struct ContentView: View {
                                     controller.selectedIndex -= 1
                                 } else {
                                     withAnimation(.default) {
-                                        previousButtonShake += 1
+                                        imageShake += 1
                                     }
                                 }
                             }) {
@@ -89,7 +89,6 @@ struct ContentView: View {
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .modifier(ShakeEffect(animatableData: previousButtonShake))
                             .padding(.leading, 20)
                             Spacer()
                         }
@@ -105,7 +104,7 @@ struct ContentView: View {
                                     controller.selectedIndex += 1
                                 } else {
                                     withAnimation(.default) {
-                                        nextButtonShake += 1
+                                        imageShake += 1
                                     }
                                 }
                             }) {
@@ -117,7 +116,6 @@ struct ContentView: View {
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .modifier(ShakeEffect(animatableData: nextButtonShake))
                             .padding(.trailing, 20)
                         }
                         .transition(.opacity)
