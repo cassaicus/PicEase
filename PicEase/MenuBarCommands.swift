@@ -24,19 +24,12 @@ struct FileCommands: Commands {
             // キーボードショートカットとして Command+O を設定します。
             .keyboardShortcut("O", modifiers: [.command])
 
-            Divider()
-
-            if model.imagePaths.isEmpty {
-                Button("Open Finder") {}
-                    .disabled(true)
-            } else {
+            if !model.imagePaths.isEmpty {
+                Divider()
                 Button("Open Finder") {
-                    let currentURL = model.imagePaths[model.selectedIndex]
-                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
+                    NotificationCenter.default.post(name: .openFinder, object: nil)
                 }
-                .disabled(false)
             }
-
 
             // メニュー項目間に区切り線を追加します。
             Divider()
