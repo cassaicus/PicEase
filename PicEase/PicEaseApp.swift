@@ -52,7 +52,7 @@ struct PicEaseApp: App {
         // アプリケーションのメニューバーにカスタムコマンドを追加します。
         .commands {
             // ファイル関連の標準的なメニュー項目を定義します。
-            FileCommands(model: model)
+            FileCommands()
             // ブックマーク関連のカスタムメニュー項目を定義します。
             BookmarkCommands(
                 store: bookmarkStore,
@@ -81,6 +81,4 @@ extension Notification.Name {
     static let mainImageClicked = Notification.Name("mainImageClicked")
     /// 現在のビューの強制的な再描画を要求するための通知。
     static let refreshCurrentPage = Notification.Name("refreshCurrentPage")
-    /// 現在の画像をFinderで開くための通知。
-    static let openFinder = Notification.Name("openFinder")
 }

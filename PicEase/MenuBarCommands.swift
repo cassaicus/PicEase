@@ -2,8 +2,6 @@ import SwiftUI
 
 /// ファイルメニュー（"File"）に関連するコマンドを定義します。
 struct FileCommands: Commands {
-    @ObservedObject var model: PageControllerWrapper
-
     var body: some Commands {
         // "File"というタイトルのメニューグループを作成します。
         CommandMenu("File") {
@@ -23,13 +21,6 @@ struct FileCommands: Commands {
             }
             // キーボードショートカットとして Command+O を設定します。
             .keyboardShortcut("O", modifiers: [.command])
-
-            if !model.imagePaths.isEmpty {
-                Divider()
-                Button("Open Finder") {
-                    NotificationCenter.default.post(name: .openFinder, object: nil)
-                }
-            }
 
             // メニュー項目間に区切り線を追加します。
             Divider()

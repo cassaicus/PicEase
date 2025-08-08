@@ -66,13 +66,6 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         center.addObserver(self, selector: #selector(handleThumbnailSelected(_:)), name: .thumbnailSelected, object: nil)
         center.addObserver(self, selector: #selector(handleRefreshCurrentPage), name: .refreshCurrentPage, object: nil)
         center.addObserver(self, selector: #selector(handleNavigateToIndex(_:)), name: .navigateToIndex, object: nil)
-        center.addObserver(self, selector: #selector(openInFinder), name: .openFinder, object: nil)
-    }
-
-    @objc private func openInFinder() {
-        guard !wrapper.imagePaths.isEmpty else { return }
-        let currentURL = wrapper.imagePaths[wrapper.selectedIndex]
-        NSWorkspace.shared.activateFileViewerSelecting([currentURL])
     }
 
     /// 「フォルダを開く」通知を処理します。
