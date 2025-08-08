@@ -77,8 +77,8 @@ struct ControlBarView: View {
         Button(action: {
             // 新しいインデックスを計算。0未満や総数以上にならないようにクランプ（範囲内に収める）。
             let newIndex = min(max(0, controller.selectedIndex + offset), controller.imagePaths.count - 1)
-            // 計算した新しいインデックスをコントローラに設定
-            controller.selectedIndex = newIndex
+            // 計算した新しいインデックスを通知で送信
+            NotificationCenter.default.post(name: .navigateToIndex, object: newIndex)
         }) {
             // ボタンの見た目（アイコン）
             Image(systemName: systemName)
