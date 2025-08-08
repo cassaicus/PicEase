@@ -2,24 +2,24 @@ import SwiftUI
 
 /// アプリケーションのメインウィンドウのコンテンツを定義する、中心的なSwiftUIビューです。
 struct ContentView: View {
-
+    
     // MARK: - State Properties
-
+    
     /// `NSPageController`のデータソースと状態を管理する共有オブジェクト。
     /// `@StateObject`としてここでインスタンス化され、このビューとその子ビューのライフサイクルにわたって維持されます。
     @StateObject private var controller = PageControllerWrapper()
-
+    
     /// ウィンドウサイズが変更されたときに再描画を遅延実行するためのタスク。
     @State private var resizeTask: DispatchWorkItem?
     
     @State private var isHintIconVisible: Bool = false
     @State private var isPreviousButtonVisible: Bool = false
     @State private var isNextButtonVisible: Bool = false
-
+    
     @State private var imageShake: CGFloat = 0
-
+    
     // MARK: - Body
-
+    
     var body: some View {
         // `GeometryReader` を使用して、親ビュー（この場合はウィンドウ全体）のサイズと座標系を取得します。
         GeometryReader { geometry in
@@ -30,7 +30,7 @@ struct ContentView: View {
                     // AppKitの`NSPageController`をSwiftUIで表示するためのラッパービュー。
                     PageControllerRepresentable(controller: controller)
                         .modifier(ShakeEffect(animatableData: imageShake))
-                        // 安全領域（ノッチなど）を無視して全画面に表示。
+                    // 安全領域（ノッチなど）を無視して全画面に表示。
                         .edgesIgnoringSafeArea(.all)
                         .onReceive(NotificationCenter.default.publisher(for: .showThumbnail)) { _ in
                             withAnimation {
@@ -55,11 +55,11 @@ struct ContentView: View {
                     if controller.imagePaths.isEmpty {
                         OpenFolderOverlayView()
                     }
-
+                    
                     MouseTrackingView { location in
                         handleMouseMovement(at: location, in: geometry.size)
                     }
-
+                    
                     if isHintIconVisible {
                         VStack {
                             Spacer()
@@ -73,7 +73,7 @@ struct ContentView: View {
                         }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-
+                    
                     // 左（戻る）ボタン
                     if isPreviousButtonVisible {
                         HStack {
@@ -99,7 +99,7 @@ struct ContentView: View {
                         }
                         .transition(.opacity)
                     }
-
+                    
                     // 右（進む）ボタン
                     if isNextButtonVisible {
                         HStack {
@@ -151,13 +151,13 @@ struct ContentView: View {
             .onChange(of: geometry.size) {
                 // ウィンドウリサイズが頻繁に発生するため、`DispatchWorkItem`で処理を遅延させ、最後の変更後にのみ実行（デバウンス）。
                 resizeTask?.cancel() // 以前のタスクがあればキャンセル
-
+                
                 let task = DispatchWorkItem {
                     // `NSPageController`に現在のページを再描画するよう通知
                     NotificationCenter.default.post(name: .refreshCurrentPage, object: nil)
                 }
                 resizeTask = task
-
+                
                 // 0.35秒の遅延後にタスクを実行
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: task)
             }
@@ -173,42 +173,42 @@ struct ContentView: View {
               controller.imagePaths.indices.contains(controller.selectedIndex),
               let image = NSImage(contentsOf: controller.imagePaths[controller.selectedIndex])
         else { return }
-
+        
         let imageSize = image.size
         // ウィンドウが現在表示されているスクリーンの可視領域（メニューバーやDockを除く）を取得
         guard let screenVisibleFrame = window.screen?.visibleFrame else { return }
-
+        
         // 画像を可視領域に収めるためのスケーリング比率を計算
         let scale = min(screenVisibleFrame.width / imageSize.width,
                         screenVisibleFrame.height / imageSize.height)
-
+        
         // 新しいウィンドウサイズを計算
         let newWidth = imageSize.width * scale
         let newHeight = imageSize.height * scale
-
+        
         // 新しいウィンドウの原点（左下の座標）を計算
         // X座標：現在のウィンドウの中心が、新しいサイズの中心になるように設定
         let currentFrame = window.frame
         let newX = currentFrame.origin.x + (currentFrame.width - newWidth) / 2
         // Y座標：可視領域の下端に合わせる
         let newY = screenVisibleFrame.minY
-
+        
         // 新しいフレーム（位置とサイズ）を作成
         let newFrame = NSRect(x: newX, y: newY, width: newWidth, height: newHeight)
-
+        
         // ウィンドウのフレームをアニメーション付きで更新
         window.setFrame(newFrame, display: true, animate: true)
     }
     
     // MARK: - Child Views
-
+    
     /// 画像が読み込まれていないときに表示されるオーバーレイビュー。
     struct OpenFolderOverlayView: View {
         var body: some View {
             ZStack {
                 // 半透明の黒い背景
                 Color.black.opacity(0.8)
-
+                
                 // 「フォルダを開く」ボタン
                 Button(action: {
                     // `.openFolder`通知を送信して、`ImagePageController`にフォルダ選択パネルを開かせる
@@ -227,7 +227,7 @@ struct ContentView: View {
             .edgesIgnoringSafeArea(.all)
         }
     }
-
+    
     private func handleMouseMovement(at location: CGPoint, in size: CGSize) {
         if controller.isThumbnailVisible {
             if isHintIconVisible || isPreviousButtonVisible || isNextButtonVisible {
@@ -239,7 +239,7 @@ struct ContentView: View {
             }
             return
         }
-
+        
         // マウスカーソルのY座標がビューの下部25%にあるかを判定
         let shouldBeHintIconVisible = location.y < size.height * 0.25
         if isHintIconVisible != shouldBeHintIconVisible {
@@ -247,7 +247,7 @@ struct ContentView: View {
                 isHintIconVisible = shouldBeHintIconVisible
             }
         }
-
+        
         // マウスカーソルのX座標が左側20%にあるかを判定
         let shouldBePreviousButtonVisible = location.x < size.width * 0.2
         if isPreviousButtonVisible != shouldBePreviousButtonVisible {
@@ -255,7 +255,7 @@ struct ContentView: View {
                 isPreviousButtonVisible = shouldBePreviousButtonVisible
             }
         }
-
+        
         // マウスカーソルのX座標が右側20%にあるかを判定
         let shouldBeNextButtonVisible = location.x > size.width * (1 - 0.2)
         if isNextButtonVisible != shouldBeNextButtonVisible {
@@ -274,39 +274,37 @@ struct ShakeEffect: GeometryEffect {
     var shakesPerUnit = 3
     /// アニメーション可能なデータ。この値が変化するとエフェクトが再計算される。
     var animatableData: CGFloat
-
+    
     func effectValue(size: CGSize) -> ProjectionTransform {
         // `animatableData`（アニメーションのトリガー）が変化したときに、
         // `sin`関数を使ってX方向のオフセットを計算し、左右の揺れを表現する。
-        ProjectionTransform(CGAffineTransform(translationX:
-            amount * sin(animatableData * .pi * CGFloat(shakesPerUnit))),
-            y: 0))
+        ProjectionTransform(CGAffineTransform(translationX:amount * sin(animatableData * .pi * CGFloat(shakesPerUnit)), y: 0))
     }
 }
 
 /// マウスカーソルの位置を継続的に追跡するための`NSViewRepresentable`ラッパー。
 struct MouseTrackingView: NSViewRepresentable {
     var onMove: (CGPoint) -> Void // マウスが移動したときに呼び出されるコールバック
-
+    
     func makeNSView(context: Context) -> NSView {
         let view = TrackingNSView()
         view.onMove = onMove
         return view
     }
-
+    
     func updateNSView(_ nsView: NSView, context: Context) {}
-
+    
     /// マウストラッキング機能を実装したカスタム`NSView`。
     class TrackingNSView: NSView {
         var onMove: ((CGPoint) -> Void)?
-
+        
         // `updateTrackingAreas`は、ビューのサイズや位置が変わったときに呼び出されるため、
         // ここでトラッキングエリアを再設定するのが最も確実です。
         override func updateTrackingAreas() {
             super.updateTrackingAreas()
             // 既存のトラッキングエリアをすべて削除して重複を防ぐ
             trackingAreas.forEach(removeTrackingArea)
-
+            
             // 新しいトラッキングエリアを作成
             let area = NSTrackingArea(
                 rect: bounds, // ビュー全体を追跡範囲とする
@@ -320,13 +318,13 @@ struct MouseTrackingView: NSViewRepresentable {
             )
             addTrackingArea(area)
         }
-
+        
         // マウスが移動したときに呼び出される
         override func mouseMoved(with event: NSEvent) {
             // マウスのウィンドウ座標をビューのローカル座標に変換してコールバックを呼び出し
             onMove?(convert(event.locationInWindow, from: nil))
         }
-
+        
         // このビューがクリックイベントを補足しないように`nil`を返す（イベントを下のビューに透過させる）。
         override func hitTest(_ point: NSPoint) -> NSView? {
             return nil

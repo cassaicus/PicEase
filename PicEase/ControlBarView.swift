@@ -66,7 +66,7 @@ struct ControlBarView: View {
                 if !controller.imagePaths.isEmpty {
                     let currentURL = controller.imagePaths[controller.selectedIndex]
                     let parentURL = currentURL.deletingLastPathComponent()
-                    NSWorkspace.shared.open(parentURL)
+                    NSWorkspace.shared.activateFileViewerSelecting([parentURL])
                 }
             }) {
                 Image(systemName: "arrow.turn.up.left")
