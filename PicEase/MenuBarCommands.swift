@@ -26,13 +26,16 @@ struct FileCommands: Commands {
 
             Divider()
 
-            Button("Open Finder") {
-                if !model.imagePaths.isEmpty {
+            if model.imagePaths.isEmpty {
+                Button("Open Finder") {}
+                    .disabled(true)
+            } else {
+                Button("Open Finder") {
                     let currentURL = model.imagePaths[model.selectedIndex]
                     NSWorkspace.shared.activateFileViewerSelecting([currentURL])
                 }
+                .disabled(false)
             }
-            .disabled(model.imagePaths.isEmpty)
 
 
             // メニュー項目間に区切り線を追加します。
