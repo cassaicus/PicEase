@@ -16,6 +16,9 @@ struct ContentView: View {
     @State private var isPreviousButtonVisible: Bool = false
     @State private var isNextButtonVisible: Bool = false
 
+    @State private var previousButtonShake: CGFloat = 0
+    @State private var nextButtonShake: CGFloat = 0
+
     // MARK: - Body
 
     var body: some View {
@@ -72,6 +75,10 @@ struct ContentView: View {
                             Button(action: {
                                 if controller.selectedIndex > 0 {
                                     controller.selectedIndex -= 1
+                                } else {
+                                    withAnimation(.default) {
+                                        previousButtonShake += 1
+                                    }
                                 }
                             }) {
                                 Text("<")
@@ -82,6 +89,7 @@ struct ContentView: View {
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .modifier(ShakeEffect(animatableData: previousButtonShake))
                             .padding(.leading, 20)
                             Spacer()
                         }
@@ -95,6 +103,10 @@ struct ContentView: View {
                             Button(action: {
                                 if controller.selectedIndex < controller.imagePaths.count - 1 {
                                     controller.selectedIndex += 1
+                                } else {
+                                    withAnimation(.default) {
+                                        nextButtonShake += 1
+                                    }
                                 }
                             }) {
                                 Text(">")
@@ -105,6 +117,7 @@ struct ContentView: View {
                                     .clipShape(Circle())
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .modifier(ShakeEffect(animatableData: nextButtonShake))
                             .padding(.trailing, 20)
                         }
                         .transition(.opacity)
@@ -247,6 +260,24 @@ struct ContentView: View {
                 isNextButtonVisible = shouldBeNextButtonVisible
             }
         }
+    }
+}
+
+/// ビューにシェイクアニメーションを適用するための`GeometryEffect`。
+struct ShakeEffect: GeometryEffect {
+    /// 揺れの強さ
+    var amount: CGFloat = 10
+    /// 揺れの回数
+    var shakesPerUnit = 3
+    /// アニメーション可能なデータ。この値が変化するとエフェクトが再計算される。
+    var animatableData: CGFloat
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        // `animatableData`（アニメーションのトリガー）が変化したときに、
+        // `sin`関数を使ってX方向のオフセットを計算し、左右の揺れを表現する。
+        ProjectionTransform(CGAffineTransform(translationX:
+            amount * sin(animatableData * .pi * CGFloat(shakesPerUnit))),
+            y: 0))
     }
 }
 
