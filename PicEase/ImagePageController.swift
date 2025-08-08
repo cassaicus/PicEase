@@ -65,6 +65,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         center.addObserver(self, selector: #selector(handleOpenFolderFromBookmark(_:)), name: .openFolderFromBookmark, object: nil)
         center.addObserver(self, selector: #selector(handleThumbnailSelected(_:)), name: .thumbnailSelected, object: nil)
         center.addObserver(self, selector: #selector(handleRefreshCurrentPage), name: .refreshCurrentPage, object: nil)
+        center.addObserver(self, selector: #selector(handleNavigateToIndex(_:)), name: .navigateToIndex, object: nil)
     }
 
     /// 「フォルダを開く」通知を処理します。
@@ -139,6 +140,16 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         }
     }
     
+    /// インデックス指定ナビゲーションの通知を処理します。
+    @objc private func handleNavigateToIndex(_ notification: Notification) {
+        if let index = notification.object as? Int, arrangedObjects.indices.contains(index) {
+            // 現在のインデックスと異なるときだけ実行
+            if selectedIndex != index {
+                selectedIndex = index
+            }
+        }
+    }
+
     /// 現在表示中のページを強制的に再描画する通知を処理します。
     @objc private func handleRefreshCurrentPage() {
         let count = arrangedObjects.count

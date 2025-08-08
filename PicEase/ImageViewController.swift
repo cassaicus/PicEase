@@ -126,57 +126,7 @@ class ImageViewController: NSViewController {
     // MARK: - Event Handlers & Actions
 
     /// シングルクリックで呼び出され、UIの表示/非表示を切り替える通知を送信します。
-    @objc func handleSingleClick(_ sender: NSClickGestureRecognizer) {
-        guard let wrapper = wrapper else { return }
 
-        let location = sender.location(in: view)
-        let viewHeight = view.bounds.height
-
-        if wrapper.isThumbnailVisible {
-            NotificationCenter.default.post(name: .hideThumbnail, object: nil)
-        } else {
-            if location.y < viewHeight * 0.25 {
-                NotificationCenter.default.post(name: .showThumbnail, object: nil)
-            }
-        }
-    }
-
-    @objc func handleMouseMoved(_ notification: Notification) {
-        updateCursor()
-    }
-
-    private func updateCursor() {
-        if isDragging {
-            NSCursor.closedHand.set()
-            return
-        }
-
-        if zoomScale > 1.0 {
-            NSCursor.openHand.set()
-            return
-        }
-
-        guard let wrapper = wrapper else {
-            NSCursor.arrow.set()
-            return
-        }
-
-        if wrapper.isThumbnailVisible {
-            NSCursor.pointingHand.set()
-            return
-        }
-
-        let mouseLocation = NSEvent.mouseLocation
-        if let windowFrame = view.window?.frame {
-            let locationInWindow = NSPoint(x: mouseLocation.x - windowFrame.origin.x, y: mouseLocation.y - windowFrame.origin.y)
-            let locationInView = view.convert(locationInWindow, from: nil)
-
-            if locationInView.y < view.bounds.height * 0.25 {
-                NSCursor.pointingHand.set()
-            } else {
-                NSCursor.arrow.set()
-            }
-        }
     }
     
     /// ダブルクリックで呼び出され、ズームレベルを循環的に変更します。
