@@ -18,8 +18,6 @@ struct ContentView: View {
     
     @State private var imageShake: CGFloat = 0
     
-    @State private var lastScrollTime = Date.distantPast
-
     // MARK: - Body
     
     var body: some View {
@@ -32,11 +30,6 @@ struct ContentView: View {
                     // AppKitの`NSPageController`をSwiftUIで表示するためのラッパービュー。
                     PageControllerRepresentable(controller: controller)
                         .modifier(ShakeEffect(animatableData: imageShake))
-
-                    // マウススクロールイベントを捕捉するためのオーバーレイビュー
-                    ScrollEventView { deltaY in
-                        handleScroll(deltaY: deltaY)
-                    }
                     // 安全領域（ノッチなど）を無視して全画面に表示。
                         .edgesIgnoringSafeArea(.all)
                         .onReceive(NotificationCenter.default.publisher(for: .showThumbnail)) { _ in
@@ -213,36 +206,6 @@ struct ContentView: View {
         
         // ウィンドウのフレームをアニメーション付きで更新
         window.setFrame(newFrame, display: true, animate:true)
-    }
-
-    private func handleScroll(deltaY: CGFloat) {
-        // スクロールイベントが短時間に連続して発生するのを防ぐ（スロットリング）
-        // 前回の処理から0.2秒経過していなければ、何もしない
-        guard Date().timeIntervalSince(lastScrollTime) > 0.2 else { return }
-
-        // 最後に処理した時間を更新
-        lastScrollTime = Date()
-
-        // スクロールの方向に応じてインデックスを変更
-        if deltaY > 0 { // 上スクロール（または左スワイプ）
-            if controller.selectedIndex > 0 {
-                controller.selectedIndex -= 1
-            } else {
-                // 最初の画像でさらに戻ろうとしたらシェイク
-                withAnimation(.default) {
-                    imageShake += 1
-                }
-            }
-        } else if deltaY < 0 { // 下スクロール（または右スワイプ）
-            if controller.selectedIndex < controller.imagePaths.count - 1 {
-                controller.selectedIndex += 1
-            } else {
-                // 最後の画像でさらに進もうとしたらシェイク
-                withAnimation(.default) {
-                    imageShake += 1
-                }
-            }
-        }
     }
     
     // MARK: - Child Views
