@@ -18,7 +18,7 @@ struct ControlBarView: View {
         // 水平方向にコントロールを配置するHStack
         HStack(spacing: 16) {
             // MARK: Open Folder Button
-            iconButton(systemName: "folder.badge.plus") {
+            iconButton(systemName: "folder") {
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
 
@@ -46,7 +46,7 @@ struct ControlBarView: View {
                     NSWorkspace.shared.activateFileViewerSelecting([parentURL])
                 }
             }) {
-                Image(systemName: "arrow.up.folder")
+                Image(systemName: "square.and.arrow.up.on.square")
                     .font(.system(size: 16, weight: .medium))
                     .frame(width: 36, height: 36)
                     .background(Color.white.opacity(0.15))
@@ -81,7 +81,7 @@ struct ControlBarView: View {
 
             // MARK: Fit Image Button
             // 画像をウィンドウにフィットさせるボタン
-            iconButton(systemName: "rectangle.and.arrow.up.right.and.arrow.down.left", action: fitImageAction)
+            iconButton(systemName: "photo.artframe", action: fitImageAction)
 
         }
         .padding(.vertical, 6)       // 上下のパディング
