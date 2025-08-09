@@ -22,15 +22,14 @@ struct ControlBarView: View {
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
 
-            // MARK: Open Parent Directory Button
+            // MARK: Open in Finder Button
             Button(action: {
                 if !controller.imagePaths.isEmpty {
                     let currentURL = controller.imagePaths[controller.selectedIndex]
-                    let parentURL = currentURL.deletingLastPathComponent()
-                    NSWorkspace.shared.activateFileViewerSelecting([parentURL])
+                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
                 }
             }) {
-                Image(systemName: "arrow.turn.up.left")
+                Image(systemName: "macwindow")
                     .font(.system(size: 16, weight: .medium))
                     .frame(width: 36, height: 36)
                     .background(Color.white.opacity(0.15))
@@ -39,14 +38,15 @@ struct ControlBarView: View {
             }
             .buttonStyle(PlainButtonStyle())
 
-            // MARK: Open in Finder Button
+            // MARK: Open Parent Directory Button
             Button(action: {
                 if !controller.imagePaths.isEmpty {
                     let currentURL = controller.imagePaths[controller.selectedIndex]
-                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
+                    let parentURL = currentURL.deletingLastPathComponent()
+                    NSWorkspace.shared.activateFileViewerSelecting([parentURL])
                 }
             }) {
-                Image(systemName: "folder")
+                Image(systemName: "arrow.up.folder")
                     .font(.system(size: 16, weight: .medium))
                     .frame(width: 36, height: 36)
                     .background(Color.white.opacity(0.15))
@@ -81,7 +81,7 @@ struct ControlBarView: View {
 
             // MARK: Fit Image Button
             // 画像をウィンドウにフィットさせるボタン
-            iconButton(systemName: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left", action: fitImageAction)
+            iconButton(systemName: "rectangle.and.arrow.up.right.and.arrow.down.left", action: fitImageAction)
 
         }
         .padding(.vertical, 6)       // 上下のパディング
