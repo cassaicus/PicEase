@@ -10,15 +10,21 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
     /// アプリケーションの共有データ（画像URLリスト、選択インデックス）を管理するラッパーオブジェクト。
     private var wrapper: PageControllerWrapper
 
+    /// アプリケーションの設定を管理するストア。
+    private var settingsStore: SettingsStore
+
     /// キーボード入力の連続操作を防ぐためのロックフラグ。
     private var keyInputLocked = false
     
     // MARK: - Initialization
 
-    /// PageControllerWrapperを注入してコントローラを初期化します。
-    /// - Parameter controller: 共有データのラッパーインスタンス。
-    init(controller: PageControllerWrapper) {
+    /// PageControllerWrapperとSettingsStoreを注入してコントローラを初期化します。
+    /// - Parameters:
+    ///   - controller: 共有データのラッパーインスタンス。
+    ///   - settingsStore: 設定のストアインスタンス。
+    init(controller: PageControllerWrapper, settingsStore: SettingsStore) {
         self.wrapper = controller
+        self.settingsStore = settingsStore
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -244,6 +250,7 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         // 新しいImageViewControllerを生成
         let vc = ImageViewController()
         vc.wrapper = self.wrapper
+        vc.settingsStore = self.settingsStore
         return vc
     }
     
@@ -279,15 +286,19 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
         // 短時間での連続入力を防ぐためのロック
         guard !keyInputLocked else { return }
         
+        // 設定に応じてキーコードを動的に割り当てる
+        let goForwardKeyCode: UInt16 = settingsStore.invertArrowKeys ? 123 : 124 // 標準: 右, 反転: 左
+        let goBackwardKeyCode: UInt16 = settingsStore.invertArrowKeys ? 124 : 123 // 標準: 左, 反転: 右
+
         // `keyCode`に基づいて処理を分岐
         switch event.keyCode {
-        case 124: // 右矢印キー
+        case goForwardKeyCode:
             if selectedIndex < arrangedObjects.count - 1 {
                 navigateForward(nil)
             } else {
                 NotificationCenter.default.post(name: .shakeImage, object: nil)
             }
-        case 123: // 左矢印キー
+        case goBackwardKeyCode:
             if selectedIndex > 0 {
                 navigateBack(nil)
             } else {

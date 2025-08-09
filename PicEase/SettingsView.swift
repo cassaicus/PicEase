@@ -1,16 +1,13 @@
 import SwiftUI
 
 struct SettingsView: View {
-    // NOTE: These will be connected to a persistent store later.
-    @State private var invertArrowKeys = false
-    @State private var enableMouseWheel = true
-    @State private var showHoverButtons = true
+    @EnvironmentObject var settingsStore: SettingsStore
 
     var body: some View {
         Form {
-            Toggle("キーボードの←/→キーの操作を逆にする", isOn: $invertArrowKeys)
-            Toggle("マウスホイールでのナビゲーションを有効にする", isOn: $enableMouseWheel)
-            Toggle("画像上のナビゲーションボタンを表示する", isOn: $showHoverButtons)
+            Toggle("キーボードの←/→キーの操作を逆にする", isOn: $settingsStore.invertArrowKeys)
+            Toggle("マウスホイールでのナビゲーションを有効にする", isOn: $settingsStore.enableMouseWheel)
+            Toggle("画像上のナビゲーションボタンを表示する", isOn: $settingsStore.showHoverButtons)
         }
         .padding(20)
     }

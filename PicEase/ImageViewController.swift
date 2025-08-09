@@ -19,6 +19,9 @@ class ImageViewController: NSViewController {
     /// スクロールナビゲーションのスロットリング用タイムスタンプ。
     private var lastScrollTime = Date.distantPast
 
+    /// アプリケーションの設定を管理するストア。
+    var settingsStore: SettingsStore?
+
     // MARK: - Lifecycle Methods
 
     /// ビューコントローラのビューをロードまたは作成します。
@@ -127,7 +130,8 @@ class ImageViewController: NSViewController {
     /// スクロールイベントに基づいて画像のナビゲーションを処理します。
     /// - Parameter direction: スクロールの方向（進む/戻る）。
     private func handleScroll(for direction: ScrollDirection) {
-        // スロットリング：前回の処理から0.2秒未満の場合は何もしない
+        // 設定で無効になっているか、スロットリング期間中の場合は何もしない
+        guard let settingsStore = settingsStore, settingsStore.enableMouseWheel else { return }
         guard Date().timeIntervalSince(lastScrollTime) > 0.2, let wrapper = wrapper else { return }
 
         lastScrollTime = Date()

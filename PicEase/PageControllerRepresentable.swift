@@ -11,6 +11,7 @@ struct PageControllerRepresentable: NSViewControllerRepresentable {
     /// 親のSwiftUIビュー（`ContentView`）から渡される、アプリケーションの状態を管理するObservableObject。
     /// `@ObservedObject`としてこの変更を監視し、`updateNSViewController`をトリガーします。
     @ObservedObject var controller: PageControllerWrapper
+    let settingsStore: SettingsStore
 
     // MARK: - NSViewControllerRepresentable Methods
 
@@ -19,8 +20,8 @@ struct PageControllerRepresentable: NSViewControllerRepresentable {
     /// - Returns: SwiftUIによって管理される`NSPageController`のインスタンス。
     func makeNSViewController(context: Context) -> NSPageController {
         // `ImagePageController`（NSPageControllerのカスタムサブクラス）を初期化します。
-        // `controller`を渡すことで、`ImagePageController`が共有データモデルにアクセスできるようになります。
-        let pageController = ImagePageController(controller: controller)
+        // `controller`と`settingsStore`を渡すことで、`ImagePageController`が共有データモデルと設定にアクセスできるようになります。
+        let pageController = ImagePageController(controller: controller, settingsStore: settingsStore)
         return pageController
     }
 

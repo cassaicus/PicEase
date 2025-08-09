@@ -19,6 +19,9 @@ struct PicEaseApp: App {
     /// こちらも`@StateObject`として宣言され、アプリ全体で共有されます。
     @StateObject private var bookmarkStore: BookmarkStore
 
+    /// アプリケーション全体の設定を管理するデータストア。
+    @StateObject private var settingsStore = SettingsStore()
+
     // MARK: - Initialization
 
     /// アプリの初期化処理。
@@ -46,6 +49,8 @@ struct PicEaseApp: App {
                 .environmentObject(model)
                 // 同様に`bookmarkStore`もビュー階層に供給します。
                 .environmentObject(bookmarkStore)
+                // `settingsStore`もビュー階層に供給します。
+                .environmentObject(settingsStore)
         }
         // ウィンドウのタイトルバーを非表示にするスタイルを適用します。
         .windowStyle(HiddenTitleBarWindowStyle())

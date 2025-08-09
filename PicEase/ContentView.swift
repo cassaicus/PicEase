@@ -8,6 +8,7 @@ struct ContentView: View {
     /// `NSPageController`のデータソースと状態を管理する共有オブジェクト。
     /// `@StateObject`としてここでインスタンス化され、このビューとその子ビューのライフサイクルにわたって維持されます。
     @StateObject private var controller = PageControllerWrapper()
+    @EnvironmentObject var settingsStore: SettingsStore
     
     /// ウィンドウサイズが変更されたときに再描画を遅延実行するためのタスク。
     @State private var resizeTask: DispatchWorkItem?
@@ -28,7 +29,7 @@ struct ContentView: View {
                 // ZStackを使用して、画像ビューと他のUI要素（マウストラッキング、オーバーレイ）を重ねて表示します。
                 ZStack {
                     // AppKitの`NSPageController`をSwiftUIで表示するためのラッパービュー。
-                    PageControllerRepresentable(controller: controller)
+                    PageControllerRepresentable(controller: controller, settingsStore: settingsStore)
                         .modifier(ShakeEffect(animatableData: imageShake))
                     // 安全領域（ノッチなど）を無視して全画面に表示。
                         .edgesIgnoringSafeArea(.all)
@@ -147,6 +148,16 @@ struct ContentView: View {
                     }
                 }
             }
+            // ホバーボタン設定の変更を監視します。
+            .onChange(of: settingsStore.showHoverButtons) {
+                // 設定がオフになったら、ボタンが現在表示されていても非表示にする
+                if !settingsStore.showHoverButtons {
+                    withAnimation {
+                        isPreviousButtonVisible = false
+                        isNextButtonVisible = false
+                    }
+                }
+            }
             // ウィンドウのサイズ変更を監視します。
             .onChange(of: geometry.size) {
                 // ウィンドウリサイズが頻繁に発生するため、`DispatchWorkItem`で処理を遅延させ、最後の変更後にのみ実行（デバウンス）。
@@ -237,6 +248,9 @@ struct ContentView: View {
     }
     
     private func handleMouseMovement(at location: CGPoint, in size: CGSize) {
+        // 設定でホバーボタンが無効になっている場合は何もしない
+        guard settingsStore.showHoverButtons else { return }
+
         if controller.isThumbnailVisible {
             if isHintIconVisible || isPreviousButtonVisible || isNextButtonVisible {
                 withAnimation {
