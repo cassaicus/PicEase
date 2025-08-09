@@ -121,6 +121,21 @@ class ZoomableImageViewContainer: NSView {
         lastDragLocation = nil
     }
 
+    /// マウスのサイドボタン（「進む」「戻る」）が押されたときのイベントを処理します。
+    /// - Parameter event: マウスイベントに関する情報。
+    override func otherMouseDown(with event: NSEvent) {
+        // ボタン番号に基づいてナビゲーション方向を決定
+        switch event.buttonNumber {
+        case 3: // 一般的な「戻る」ボタン
+            onScrollNavigate?(.backward)
+        case 4: // 一般的な「進む」ボタン
+            onScrollNavigate?(.forward)
+        default:
+            // 他のボタンの場合は何もしない
+            break
+        }
+    }
+
     // MARK: - First Responder
 
     /// このビューがキーボードイベントを受け付けることができる（ファーストレスポンダーになれる）かを示します。

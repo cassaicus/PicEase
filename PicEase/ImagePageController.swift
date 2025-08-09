@@ -304,6 +304,28 @@ class ImagePageController: NSPageController, NSPageControllerDelegate {
             } else {
                 NotificationCenter.default.post(name: .shakeImage, object: nil)
             }
+        case 125: // Down Arrow
+            if settingsStore.useVerticalArrowsForNavigation {
+                if selectedIndex < arrangedObjects.count - 1 {
+                    navigateForward(nil)
+                } else {
+                    NotificationCenter.default.post(name: .shakeImage, object: nil)
+                }
+            } else {
+                super.keyDown(with: event)
+                return
+            }
+        case 126: // Up Arrow
+            if settingsStore.useVerticalArrowsForNavigation {
+                if selectedIndex > 0 {
+                    navigateBack(nil)
+                } else {
+                    NotificationCenter.default.post(name: .shakeImage, object: nil)
+                }
+            } else {
+                super.keyDown(with: event)
+                return
+            }
         default:
             // 他のキー入力はデフォルトの動作に任せる
             super.keyDown(with: event)

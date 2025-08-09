@@ -12,6 +12,7 @@ class SettingsStore: ObservableObject {
         static let invertArrowKeys = "invertArrowKeys"
         static let enableMouseWheel = "enableMouseWheel"
         static let showHoverButtons = "showHoverButtons"
+        static let useVerticalArrows = "useVerticalArrowsForNavigation"
     }
 
     // MARK: - Published Properties
@@ -38,6 +39,13 @@ class SettingsStore: ObservableObject {
         }
     }
 
+    /// キーボードの上下矢印キーでのナビゲーションを有効にするかどうか。
+    @Published var useVerticalArrowsForNavigation: Bool {
+        didSet {
+            UserDefaults.standard.set(useVerticalArrowsForNavigation, forKey: Keys.useVerticalArrows)
+        }
+    }
+
     // MARK: - Initialization
 
     /// `SettingsStore`の新しいインスタンスを初期化します。
@@ -58,5 +66,6 @@ class SettingsStore: ObservableObject {
         } else {
             self.showHoverButtons = UserDefaults.standard.bool(forKey: Keys.showHoverButtons)
         }
+        self.useVerticalArrowsForNavigation = UserDefaults.standard.bool(forKey: Keys.useVerticalArrows)
     }
 }
