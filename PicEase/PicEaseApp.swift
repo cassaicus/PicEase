@@ -70,6 +70,7 @@ struct PicEaseApp: App {
             SettingsView()
                 .environmentObject(settingsStore)
         }
+        .windowLevel(.floating)
     }
 }
 

@@ -88,8 +88,6 @@ struct ControlBarView: View {
             // 画像をウィンドウにフィットさせるボタン
             iconButton(systemName: "photo.artframe", action: fitImageAction)
 
-            Spacer()
-
             // MARK: Maximize Window Button
             iconButton(systemName: "arrow.up.left.and.arrow.down.right", action: maximizeWindowAction)
 
