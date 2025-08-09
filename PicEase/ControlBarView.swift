@@ -37,6 +37,7 @@ struct ControlBarView: View {
                     .foregroundColor(.white)
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(controller.imagePaths.isEmpty)
 
             // MARK: Open Parent Directory Button
             Button(action: {
@@ -54,6 +55,7 @@ struct ControlBarView: View {
                     .foregroundColor(.white)
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(controller.imagePaths.isEmpty)
 
             // MARK: Navigation Buttons
             // 50画像戻るボタン（大）
@@ -64,7 +66,7 @@ struct ControlBarView: View {
             moveButton(systemName: "chevron.left", offset: -1, size: .small)
 
             // 1画像進むボタン（小）
-            moveButton(systemName: "chevron.right", offset: 1, size: .small)
+            moveButton(systemName: "chevron.right", offset: 1,.small)
             // 10画像進むボタン（中）
             moveButton(systemName: "chevron.right", offset: 10, size: .medium)
             // 50画像進むボタン（大）
