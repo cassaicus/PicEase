@@ -148,16 +148,6 @@ struct ContentView: View {
                     }
                 }
             }
-            // ホバーボタン設定の変更を監視します。
-            .onChange(of: settingsStore.showHoverButtons) {
-                // 設定がオフになったら、ボタンが現在表示されていても非表示にする
-                if !settingsStore.showHoverButtons {
-                    withAnimation {
-                        isPreviousButtonVisible = false
-                        isNextButtonVisible = false
-                    }
-                }
-            }
             // ウィンドウのサイズ変更を監視します。
             .onChange(of: geometry.size) {
                 // ウィンドウリサイズが頻繁に発生するため、`DispatchWorkItem`で処理を遅延させ、最後の変更後にのみ実行（デバウンス）。
@@ -248,9 +238,6 @@ struct ContentView: View {
     }
     
     private func handleMouseMovement(at location: CGPoint, in size: CGSize) {
-        // 設定でホバーボタンが無効になっている場合は何もしない
-        guard settingsStore.showHoverButtons else { return }
-
         if controller.isThumbnailVisible {
             if isHintIconVisible || isPreviousButtonVisible || isNextButtonVisible {
                 withAnimation {
@@ -262,7 +249,7 @@ struct ContentView: View {
             return
         }
         
-        // マウスカーソルのY座標がビューの下部25%にあるかを判定
+        // サムネイルヒントアイコンの表示ロジック（常に有効）
         let shouldBeHintIconVisible = location.y < size.height * 0.25
         if isHintIconVisible != shouldBeHintIconVisible {
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -270,7 +257,15 @@ struct ContentView: View {
             }
         }
         
-        // マウスカーソルのX座標が左側20%にあるかを判定
+        // 以下は、設定でホバーボタンが有効な場合のみ実行
+        guard settingsStore.showHoverButtons else {
+            // 設定がオフの場合、ボタンがもし表示されていたら非表示にする
+            if isPreviousButtonVisible { isPreviousButtonVisible = false }
+            if isNextButtonVisible { isNextButtonVisible = false }
+            return
+        }
+
+        // 左右のナビゲーションボタンの表示ロジック
         let shouldBePreviousButtonVisible = location.x < size.width * 0.2
         if isPreviousButtonVisible != shouldBePreviousButtonVisible {
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -278,7 +273,6 @@ struct ContentView: View {
             }
         }
         
-        // マウスカーソルのX座標が右側20%にあるかを判定
         let shouldBeNextButtonVisible = location.x > size.width * (1 - 0.2)
         if isNextButtonVisible != shouldBeNextButtonVisible {
             withAnimation(.easeInOut(duration: 0.2)) {
