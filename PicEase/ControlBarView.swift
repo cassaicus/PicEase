@@ -22,7 +22,38 @@ struct ControlBarView: View {
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
 
-            Spacer()
+            // MARK: Open Parent Directory Button
+            Button(action: {
+                if !controller.imagePaths.isEmpty {
+                    let currentURL = controller.imagePaths[controller.selectedIndex]
+                    let parentURL = currentURL.deletingLastPathComponent()
+                    NSWorkspace.shared.activateFileViewerSelecting([parentURL])
+                }
+            }) {
+                Image(systemName: "arrow.turn.up.left")
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // MARK: Open in Finder Button
+            Button(action: {
+                if !controller.imagePaths.isEmpty {
+                    let currentURL = controller.imagePaths[controller.selectedIndex]
+                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
+                }
+            }) {
+                Image(systemName: "folder")
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
+                    .foregroundColor(.white)
+            }
+            .buttonStyle(PlainButtonStyle())
 
             // MARK: Navigation Buttons
             // 50画像戻るボタン（大）
@@ -51,39 +82,6 @@ struct ControlBarView: View {
             // MARK: Fit Image Button
             // 画像をウィンドウにフィットさせるボタン
             iconButton(systemName: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left", action: fitImageAction)
-
-            // MARK: Open in Finder Button
-            Button(action: {
-                if !controller.imagePaths.isEmpty {
-                    let currentURL = controller.imagePaths[controller.selectedIndex]
-                    NSWorkspace.shared.activateFileViewerSelecting([currentURL])
-                }
-            }) {
-                Image(systemName: "folder")
-                    .font(.system(size: 16, weight: .medium))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.15))
-                    .clipShape(Circle())
-                    .foregroundColor(.white)
-            }
-            .buttonStyle(PlainButtonStyle())
-
-            // MARK: Open Parent Directory Button
-            Button(action: {
-                if !controller.imagePaths.isEmpty {
-                    let currentURL = controller.imagePaths[controller.selectedIndex]
-                    let parentURL = currentURL.deletingLastPathComponent()
-                    NSWorkspace.shared.activateFileViewerSelecting([parentURL])
-                }
-            }) {
-                Image(systemName: "arrow.turn.up.left")
-                    .font(.system(size: 16, weight: .medium))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.15))
-                    .clipShape(Circle())
-                    .foregroundColor(.white)
-            }
-            .buttonStyle(PlainButtonStyle())
 
         }
         .padding(.vertical, 6)       // 上下のパディング
