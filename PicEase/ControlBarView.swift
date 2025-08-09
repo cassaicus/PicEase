@@ -12,6 +12,9 @@ struct ControlBarView: View {
     /// ウィンドウを現在の画像のサイズにフィットさせるためのアクション。親ビュー（ContentView）からクロージャとして渡されます。
     var fitImageAction: () -> Void
 
+    /// ウィンドウを最大化/復元するためのアクション。
+    var maximizeWindowAction: () -> Void
+
     // MARK: - Body
 
     var body: some View {
@@ -84,6 +87,11 @@ struct ControlBarView: View {
             // MARK: Fit Image Button
             // 画像をウィンドウにフィットさせるボタン
             iconButton(systemName: "photo.artframe", action: fitImageAction)
+
+            Spacer()
+
+            // MARK: Maximize Window Button
+            iconButton(systemName: "arrow.up.left.and.arrow.down.right", action: maximizeWindowAction)
 
         }
         .padding(.vertical, 6)       // 上下のパディング

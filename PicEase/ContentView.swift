@@ -19,6 +19,8 @@ struct ContentView: View {
     
     @State private var imageShake: CGFloat = 0
     
+    @State private var preMaximizationFrame: NSRect?
+
     // MARK: - Body
     
     var body: some View {
@@ -133,7 +135,11 @@ struct ContentView: View {
                     // 垂直方向にコントロールバーとサムネイルビューを配置。
                     VStack(spacing: 0) {
                         // ナビゲーションコントロールバー
-                        ControlBarView(controller: controller, fitImageAction: fitImageToWindow)
+                        ControlBarView(
+                            controller: controller,
+                            fitImageAction: fitImageToWindow,
+                            maximizeWindowAction: maximizeWindow
+                        )
                         
                         // サムネイルのスクロールビュー
                         ThumbnailScrollView(
@@ -207,6 +213,22 @@ struct ContentView: View {
         
         // ウィンドウのフレームをアニメーション付きで更新
         window.setFrame(newFrame, display: true, animate:true)
+    }
+
+    /// ウィンドウを最大化または元のサイズに復元します。
+    func maximizeWindow() {
+        guard let window = NSApp.mainWindow else { return }
+
+        // すでに最大化されている場合（保存されたフレームがある場合）は元に戻す
+        if let restoreFrame = preMaximizationFrame {
+            window.setFrame(restoreFrame, display: true, animate: true)
+            preMaximizationFrame = nil // 復元したので保存したフレームをクリア
+        } else {
+            // 最大化されていない場合は、現在のフレームを保存して最大化する
+            preMaximizationFrame = window.frame
+            guard let screenVisibleFrame = window.screen?.visibleFrame else { return }
+            window.setFrame(screenVisibleFrame, display: true, animate: true)
+        }
     }
     
     // MARK: - Child Views
