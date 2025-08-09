@@ -31,7 +31,9 @@ struct ScrollEventView: NSViewRepresentable {
         /// `hitTest`で`nil`を返すことで、イベントがこのビューを「透過」し、
         /// 背後にある他のビューに到達するようにします。
         override func hitTest(_ point: NSPoint) -> NSView? {
-            return nil
+            // スクロールイベントを受け取るために、このビューがヒット可能である必要がある。
+            // `nil`を返すとイベントが透過してしまう。
+            return self
         }
 
         /// マウスのスクロールホイールが操作されたときにシステムから呼び出されます。
