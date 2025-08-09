@@ -68,6 +68,7 @@ struct PicEaseApp: App {
         // 標準的な「設定...」メニュー項目とウィンドウを提供します。
         Settings {
             SettingsView()
+                .environmentObject(settingsStore)
         }
     }
 }
