@@ -54,8 +54,8 @@ class ZoomableImageViewContainer: NSView {
             onZoom?(zoomFactor, location)
         } else {
             // トラックパッドによる連続的なスワイプジェスチャーかどうかを判定
-            // hasPreciseScrollingDeltasがtrueで、かつジェスチャーのphase情報があればスワイプとみなす
-            let isTrackpadSwipe = event.hasPreciseScrollingDeltas && event.phase != .none
+            // hasPreciseScrollingDeltasがtrueで、かつジェスチャーのphase情報（空ではない）があればスワイプとみなす
+            let isTrackpadSwipe = event.hasPreciseScrollingDeltas && event.phase != []
 
             if isTrackpadSwipe {
                 // トラックパッドのスワイプの場合、システムのデフォルト（自然な）スクロール挙動に任せる
