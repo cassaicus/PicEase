@@ -89,7 +89,7 @@ struct ControlBarView: View {
             iconButton(systemName: "photo.artframe", action: fitImageAction)
 
             // MARK: Maximize Window Button
-            iconButton(systemName: "arrow.up.left.and.arrow.down.right", action: maximizeWindowAction)
+            iconButton(systemName: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left", action: maximizeWindowAction)
 
         }
         .padding(.vertical, 6)       // 上下のパディング
