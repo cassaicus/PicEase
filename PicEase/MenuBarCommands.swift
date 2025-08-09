@@ -1,31 +1,21 @@
 import SwiftUI
 
-/// アプリケーションのメインメニュー（"PicEase"）に関連するコマンドを定義します。
-struct AppCommands: Commands {
-    // openWindow環境アクションを取得して、プログラムでウィンドウを開くために使用します。
+/// 設定メニュー（"Setting"）に関連するコマンドを定義します。
+struct SettingsCommands: Commands {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
-        // "PicEase"というタイトルのトップレベルメニューを作成します。
-        CommandMenu("PicEase") {
-            // "設定"メニュー項目
+        CommandMenu("Setting") {
             Button("設定...") {
-                // "settings-window"というIDを持つウィンドウを開きます。
-                // このIDはPicEaseAppで定義されます。
                 openWindow(id: "settings-window")
             }
-            // 標準的なキーボードショートカット Command+, を設定します。
             .keyboardShortcut(",", modifiers: [.command])
 
-            // メニュー項目間に区切り線を追加します。
             Divider()
 
-            // "Quit"メニュー項目
             Button("PicEaseを終了") {
-                // アプリケーションを終了させます。
                 NSApp.terminate(nil)
             }
-            // 標準的なキーボードショートカット Command+Q を設定します。
             .keyboardShortcut("Q", modifiers: [.command])
         }
     }
@@ -35,23 +25,15 @@ struct AppCommands: Commands {
 /// ファイルメニュー（"File"）に関連するコマンドを定義します。
 struct FileCommands: Commands {
     var body: some Commands {
-        // "File"というタイトルのメニューグループを作成します。
         CommandMenu("File") {
-
-            // "Open Image"メニュー項目
             Button("Open Image") {
-                // `ImagePageController`に画像選択パネルを開くよう通知します。
                 NotificationCenter.default.post(name: .openImage, object: nil)
             }
-            // キーボードショートカットとして Command+I を設定します。
             .keyboardShortcut("I", modifiers: [.command])
 
-            // "Open Folder"メニュー項目
             Button("Open Folder") {
-                // `ImagePageController`にフォルダ選択パネルを開くよう通知します。
                 NotificationCenter.default.post(name: .openFolder, object: nil)
             }
-            // キーボードショートカットとして Command+O を設定します。
             .keyboardShortcut("O", modifiers: [.command])
         }
     }

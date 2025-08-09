@@ -66,7 +66,7 @@ struct ControlBarView: View {
             moveButton(systemName: "chevron.left", offset: -1, size: .small)
 
             // 1画像進むボタン（小）
-            moveButton(systemName: "chevron.right", offset: 1,.small)
+            moveButton(systemName: "chevron.right", offset: 1, size: .small)
             // 10画像進むボタン（中）
             moveButton(systemName: "chevron.right", offset: 10, size: .medium)
             // 50画像進むボタン（大）
