@@ -17,6 +17,13 @@ struct ControlBarView: View {
     var body: some View {
         // 水平方向にコントロールを配置するHStack
         HStack(spacing: 16) {
+            // MARK: Open Folder Button
+            iconButton(systemName: "folder.badge.plus") {
+                NotificationCenter.default.post(name: .openFolder, object: nil)
+            }
+
+            Spacer()
+
             // MARK: Navigation Buttons
             // 50画像戻るボタン（大）
             moveButton(systemName: "chevron.left", offset: -50, size: .large)
