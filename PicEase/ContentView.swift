@@ -187,11 +187,19 @@ struct ContentView: View {
         let newHeight = imageSize.height * scale
         
         // 新しいウィンドウの原点（左下の座標）を計算
-        // X座標：現在のウィンドウの中心が、新しいサイズの中心になるように設定
         let currentFrame = window.frame
-        let newX = currentFrame.origin.x + (currentFrame.width - newWidth) / 2
+
+        // X座標：現在のウィンドウの中心が、新しいサイズの中心になるように設定
+        var newX = currentFrame.origin.x + (currentFrame.width - newWidth) / 2
+
         // Y座標：可視領域の下端に合わせる
         let newY = screenVisibleFrame.minY
+
+        // X座標が画面外に出ないように補正する
+        // 左端より左に行かないようにする
+        newX = max(newX, screenVisibleFrame.minX)
+        // 右端より右に行かないようにする
+        newX = min(newX, screenVisibleFrame.maxX - newWidth)
         
         // 新しいフレーム（位置とサイズ）を作成
         let newFrame = NSRect(x: newX, y: newY, width: newWidth, height: newHeight)
