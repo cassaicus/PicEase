@@ -58,16 +58,12 @@ struct PicEaseApp: App {
                 store: bookmarkStore,
                 model: model
             )
-            // 設定関連のカスタムメニュー項目を定義します。
-            SettingsCommands()
         }
 
-        // 設定ウィンドウを定義します。
-        Window("設定", id: "settings-window") {
+        // 標準的な「設定...」メニュー項目とウィンドウを提供します。
+        Settings {
             SettingsView()
         }
-        // ウィンドウのリサイズをコンテンツのサイズに合わせるように設定
-        .windowResizability(.contentSize)
     }
 }
 

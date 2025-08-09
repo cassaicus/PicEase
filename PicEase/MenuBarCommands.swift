@@ -1,27 +1,5 @@
 import SwiftUI
 
-/// 設定メニュー（"Setting"）に関連するコマンドを定義します。
-struct SettingsCommands: Commands {
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some Commands {
-        CommandMenu("Setting") {
-            Button("設定...") {
-                openWindow(id: "settings-window")
-            }
-            .keyboardShortcut(",", modifiers: [.command])
-
-            Divider()
-
-            Button("PicEaseを終了") {
-                NSApp.terminate(nil)
-            }
-            .keyboardShortcut("Q", modifiers: [.command])
-        }
-    }
-}
-
-
 /// ファイルメニュー（"File"）に関連するコマンドを定義します。
 struct FileCommands: Commands {
     var body: some Commands {
