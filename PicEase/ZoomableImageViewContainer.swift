@@ -53,11 +53,17 @@ class ZoomableImageViewContainer: NSView {
             // ズーム処理をコールバックで通知
             onZoom?(zoomFactor, location)
         } else {
-            // 通常のスクロールはナビゲーションとして扱う
-            if event.deltaY > 0 {
-                onScrollNavigate?(.backward) // 上スクロール/左スワイプ
-            } else if event.deltaY < 0 {
-                onScrollNavigate?(.forward) // 下スクロール/右スワイプ
+            // トラックパッドのような高精細なスクロールデバイスか、従来のマウスホイールかを判別
+            if event.hasPreciseScrollingDeltas {
+                // トラックパッドのスワイプの場合、システムのデフォルト（自然な）スクロール挙動に任せる
+                super.scrollWheel(with: event)
+            } else {
+                // マウスホイールの場合、カスタムのページ送りナビゲーションを実行
+                if event.deltaY > 0 {
+                    onScrollNavigate?(.backward)
+                } else if event.deltaY < 0 {
+                    onScrollNavigate?(.forward)
+                }
             }
         }
     }
