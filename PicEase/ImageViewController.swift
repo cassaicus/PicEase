@@ -16,6 +16,9 @@ class ImageViewController: NSViewController {
     /// 現在のズーム倍率。1.0が等倍。
     private var zoomScale: CGFloat = 1.0
     
+    /// スクロールナビゲーションのスロットリング用タイムスタンプ。
+    private var lastScrollTime = Date.distantPast
+
     // MARK: - Lifecycle Methods
 
     /// ビューコントローラのビューをロードまたは作成します。
@@ -113,9 +116,37 @@ class ImageViewController: NSViewController {
         containerView.onZoom = { [weak self] scaleDelta, location in
             self?.handleZoom(by: scaleDelta, at: location)
         }
+
+        containerView.onScrollNavigate = { [weak self] direction in
+            self?.handleScroll(for: direction)
+        }
     }
     
     // MARK: - Event Handlers & Actions
+
+    /// スクロールイベントに基づいて画像のナビゲーションを処理します。
+    /// - Parameter direction: スクロールの方向（進む/戻る）。
+    private func handleScroll(for direction: ScrollDirection) {
+        // スロットリング：前回の処理から0.2秒未満の場合は何もしない
+        guard Date().timeIntervalSince(lastScrollTime) > 0.2, let wrapper = wrapper else { return }
+
+        lastScrollTime = Date()
+
+        switch direction {
+        case .forward:
+            if wrapper.selectedIndex < wrapper.imagePaths.count - 1 {
+                wrapper.selectedIndex += 1
+            } else {
+                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            }
+        case .backward:
+            if wrapper.selectedIndex > 0 {
+                wrapper.selectedIndex -= 1
+            } else {
+                NotificationCenter.default.post(name: .shakeImage, object: nil)
+            }
+        }
+    }
 
     /// シングルクリックで呼び出され、UIの表示/非表示を切り替える通知を送信します。
     @objc func handleSingleClick(_ sender: NSClickGestureRecognizer) {

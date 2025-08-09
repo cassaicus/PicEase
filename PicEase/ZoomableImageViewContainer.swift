@@ -1,5 +1,11 @@
 import AppKit
 
+/// スクロール方向を示すための列挙型。
+enum ScrollDirection {
+    case forward
+    case backward
+}
+
 /// ズームやパン（ドラッグによる移動）操作をハンドリングするためのカスタムNSViewです。
 /// このビューは、マウスやトラックパッドのイベントを検知し、
 /// 対応するクロージャ（`onZoom`, `onPan`）を呼び出すことで、親のビューコントローラに操作を通知します。
@@ -17,6 +23,9 @@ class ZoomableImageViewContainer: NSView {
     /// - Parameter delta: 前回の位置からの移動量（x, y）。
     var onPan: ((_ delta: NSPoint) -> Void)?
 
+    /// スクロールによるナビゲーション操作が行われたときに呼び出されるクロージャ。
+    var onScrollNavigate: ((_ direction: ScrollDirection) -> Void)?
+
     // MARK: - Private Properties
 
     /// 現在、ビューがドラッグ中であるかを示すフラグ。
@@ -30,7 +39,7 @@ class ZoomableImageViewContainer: NSView {
 
     /// マウスホイールのスクロールイベントを処理します。
     /// `Command`キーが押されている場合はズーム操作として扱い、`onZoom`クロージャを呼び出します。
-    /// それ以外の場合は、通常のスクロールイベントとして親クラスに処理を委譲します。
+    /// それ以外の場合は、ナビゲーション操作として扱い、`onScrollNavigate`クロージャを呼び出します。
     /// - Parameter event: スクロールイベントに関する情報。
     override func scrollWheel(with event: NSEvent) {
         // Commandキーが押されているかチェック
@@ -44,8 +53,12 @@ class ZoomableImageViewContainer: NSView {
             // ズーム処理をコールバックで通知
             onZoom?(zoomFactor, location)
         } else {
-            // Commandキーが押されていない場合は、通常のスクロールとして処理
-            super.scrollWheel(with: event)
+            // 通常のスクロールはナビゲーションとして扱う
+            if event.deltaY > 0 {
+                onScrollNavigate?(.backward) // 上スクロール/左スワイプ
+            } else if event.deltaY < 0 {
+                onScrollNavigate?(.forward) // 下スクロール/右スワイプ
+            }
         }
     }
 
