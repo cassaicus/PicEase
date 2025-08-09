@@ -51,6 +51,8 @@ struct PicEaseApp: App {
         .windowStyle(HiddenTitleBarWindowStyle())
         // アプリケーションのメニューバーにカスタムコマンドを追加します。
         .commands {
+            // アプリケーション固有のコマンド（設定、終了など）
+            AppCommands()
             // ファイル関連の標準的なメニュー項目を定義します。
             FileCommands()
             // ブックマーク関連のカスタムメニュー項目を定義します。
@@ -59,6 +61,13 @@ struct PicEaseApp: App {
                 model: model
             )
         }
+
+        // 設定ウィンドウを定義します。
+        Window("設定", id: "settings-window") {
+            SettingsView()
+        }
+        // ウィンドウのリサイズをコンテンツのサイズに合わせるように設定
+        .windowResizability(.contentSize)
     }
 }
 

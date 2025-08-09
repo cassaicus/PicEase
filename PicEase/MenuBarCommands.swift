@@ -1,5 +1,37 @@
 import SwiftUI
 
+/// アプリケーションのメインメニュー（"PicEase"）に関連するコマンドを定義します。
+struct AppCommands: Commands {
+    // openWindow環境アクションを取得して、プログラムでウィンドウを開くために使用します。
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        // "PicEase"というタイトルのトップレベルメニューを作成します。
+        CommandMenu("PicEase") {
+            // "設定"メニュー項目
+            Button("設定...") {
+                // "settings-window"というIDを持つウィンドウを開きます。
+                // このIDはPicEaseAppで定義されます。
+                openWindow(id: "settings-window")
+            }
+            // 標準的なキーボードショートカット Command+, を設定します。
+            .keyboardShortcut(",", modifiers: [.command])
+
+            // メニュー項目間に区切り線を追加します。
+            Divider()
+
+            // "Quit"メニュー項目
+            Button("PicEaseを終了") {
+                // アプリケーションを終了させます。
+                NSApp.terminate(nil)
+            }
+            // 標準的なキーボードショートカット Command+Q を設定します。
+            .keyboardShortcut("Q", modifiers: [.command])
+        }
+    }
+}
+
+
 /// ファイルメニュー（"File"）に関連するコマンドを定義します。
 struct FileCommands: Commands {
     var body: some Commands {
@@ -21,17 +53,6 @@ struct FileCommands: Commands {
             }
             // キーボードショートカットとして Command+O を設定します。
             .keyboardShortcut("O", modifiers: [.command])
-
-            // メニュー項目間に区切り線を追加します。
-            Divider()
-
-            // "Quit"メニュー項目
-            Button("Quit") {
-                // アプリケーションを終了させます。
-                NSApp.terminate(nil)
-            }
-            // キーボードショートカットとして Command+Q を設定します。
-            .keyboardShortcut("Q", modifiers: [.command])
         }
     }
 }
