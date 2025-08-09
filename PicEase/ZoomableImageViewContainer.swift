@@ -53,20 +53,21 @@ class ZoomableImageViewContainer: NSView {
             // ズーム処理をコールバックで通知
             onZoom?(zoomFactor, location)
         } else {
-            // イベントのフェーズをチェックして、ジェスチャー（トラックパッド）か離散イベント（マウスホイール）かを判別
-            if event.phase == .none {
-                // .noneは通常、マウスホイールからの離散的なスクロールイベントを示す
+            // トラックパッドによる連続的なスワイプジェスチャーかどうかを判定
+            // hasPreciseScrollingDeltasがtrueで、かつジェスチャーのphase情報があればスワイプとみなす
+            let isTrackpadSwipe = event.hasPreciseScrollingDeltas && event.phase != .none
+
+            if isTrackpadSwipe {
+                // トラックパッドのスワイプの場合、システムのデフォルト（自然な）スクロール挙動に任せる
+                super.scrollWheel(with: event)
+            } else {
+                // 上記以外（マウスホイール、またはphase情報のない高精細スクロール）の場合、
                 // カスタムのページ送りナビゲーションを実行
                 if event.deltaY > 0 {
                     onScrollNavigate?(.backward)
                 } else if event.deltaY < 0 {
                     onScrollNavigate?(.forward)
                 }
-            } else {
-                // .began, .changed, .endedなどのフェーズを持つイベントは、
-                // トラックパッドによる連続的なジェスチャーである可能性が高い。
-                // システムのデフォルト（自然な）スクロール挙動に任せる。
-                super.scrollWheel(with: event)
             }
         }
     }
