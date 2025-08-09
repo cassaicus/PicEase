@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// ナビゲーションボタン、画像インデックス、フィットボタンを含むコントロールバーを表示するSwiftUIビューです。
 struct ControlBarView: View {
@@ -41,15 +42,31 @@ struct ControlBarView: View {
                 .font(.system(size: 14, weight: .medium))
                 .padding(.leading, 4) // 左のボタンとの間に少し余白を追加
 
+            Spacer()
+
             // MARK: Fit Image Button
             // 画像をウィンドウにフィットさせるボタン
             iconButton(systemName: "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left", action: fitImageAction)
 
+            // MARK: Open Folder Button
+            iconButton(systemName: "folder", action: openFolderAction)
+                .disabled(controller.imagePaths.isEmpty)
         }
         .padding(.vertical, 6)       // 上下のパディング
         .padding(.horizontal, 12)    // 左右のパディング
         .frame(maxWidth: .infinity)  // 横幅を最大まで広げる
         .background(Color.black)     // 背景色を黒に設定
+    }
+
+    // MARK: - Private Methods
+
+    private func openFolderAction() {
+        guard !controller.imagePaths.isEmpty,
+              controller.imagePaths.indices.contains(controller.selectedIndex) else {
+            return
+        }
+        let imageUrl = controller.imagePaths[controller.selectedIndex]
+        NSWorkspace.shared.selectFile(imageUrl.path, inFileViewerRootedAtPath: "")
     }
 
     // MARK: - View Builders
